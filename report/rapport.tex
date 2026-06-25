@@ -209,11 +209,12 @@ Le dataset \textbf{AG News} \cite{sbert2024} est un corpus de 120~000 articles d
 \toprule
 \textbf{Statistique} & \textbf{Valeur} \\
 \midrule
-Nombre de documents  & 2~000 \\
-Cat\'{e}gories           & 4 (World, Sports, Business, Sci/Tech) \\
-Longueur moyenne     & \~{}38 mots \\
-Longueur m\'{e}diane     & \~{}35 mots \\
-Longueur maximale    & \~{}120 mots \\
+Nombre de documents  & 2~000 (1~964 apr\`{e}s d\'{e}doublonnage) \\
+Cat\'{e}gories           & 4 (World 23.9\%, Sci/Tech 38.9\%, Sports 16.9\%, Business 20.4\%) \\
+Longueur moyenne     & 39.6 mots \\
+Longueur m\'{e}diane     & 39 mots \\
+Longueur maximale    & 134 mots \\
+Longueur moyenne (caract\`{e}res) & 317 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -225,11 +226,11 @@ Ce dataset est particuli\`{e}rement adapt\'{e} car : (1) les cat\'{e}gories th\'
 Le pipeline se d\'{e}compose en 5 \'{e}tapes :
 
 \begin{enumerate}
-    \item \textbf{T\'{e}l\'{e}chargement} : r\'{e}cup\'{e}ration du dataset via la biblioth\`{e}que \texttt{datasets} de Hugging Face (\~{}5s) ;
-    \item \textbf{Pr\'{e}traitement} : nettoyage et filtrage des textes (\~{}2s) ;
-    \item \textbf{Vectorisation} : g\'{e}n\'{e}ration des embeddings par batch de 32, avec \texttt{normalize\_embeddings=True} (\~{}30s sur CPU) ;
-    \item \textbf{Ingestion} : insertion des documents et vecteurs dans PostgreSQL via \texttt{execute\_values} (\~{}5s) ;
-    \item \textbf{Indexation} : cr\'{e}ation de l'index HNSW avec $m=16$ et $ef\_construction=64$ (\~{}3s).
+    \item \textbf{T\'{e}l\'{e}chargement} : r\'{e}cup\'{e}ration du dataset via la biblioth\`{e}que \texttt{datasets} de Hugging Face (20.3s) ;
+    \item \textbf{Pr\'{e}traitement} : nettoyage et filtrage des textes (0.1s, 2~000 $\rightarrow$ 2~000 documents conserv\'{e}s) ;
+    \item \textbf{Vectorisation} : g\'{e}n\'{e}ration des embeddings par batch de 32, avec \texttt{normalize\_embeddings=True} (\~{}120s sur CPU) ;
+    \item \textbf{Ingestion} : insertion de 2~000 documents dans PostgreSQL via \texttt{execute\_values} (2.5s, 1~964 uniques) ;
+    \item \textbf{Indexation} : cr\'{e}ation de l'index HNSW avec $m=16$ et $ef\_construction=64$ (0.6s).
 \end{enumerate}
 
 Param\`{e}tres cl\'{e}s : \texttt{BATCH\_SIZE=32}, \texttt{MAX\_CHARS=512}, \texttt{EMBEDDING\_DIM=384}.
@@ -331,15 +332,15 @@ Nous \'{e}valuons les deux m\'{e}thodes sur 20 requ\^{e}tes de test couvrant les
 \toprule
 \textbf{M\'{e}thode} & \textbf{P@1} & \textbf{P@3} & \textbf{P@5} \\
 \midrule
-S\'{e}mantique  & 0.85 & 0.82 & 0.79 \\
-TF-IDF      & 0.65 & 0.61 & 0.57 \\
+S\'{e}mantique  & 0.80 & 0.85 & 0.81 \\
+TF-IDF      & 0.80 & 0.70 & 0.76 \\
 \midrule
-\textbf{Gain relatif} & \textbf{+30.8\%} & \textbf{+34.4\%} & \textbf{+38.6\%} \\
+\textbf{Gain relatif} & \textbf{0\%} & \textbf{+21.4\%} & \textbf{+6.6\%} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-La recherche s\'{e}mantique surpasse syst\'{e}matiquement TF-IDF, avec un avantage qui s'accro\^{\i}t avec $k$. Cela s'explique par la capacit\'{e} des embeddings \`{a} capturer la synonymie et la paraphrase, tandis que TF-IDF se limite \`{a} la correspondance de termes.
+La recherche s\'{e}mantique surpasse TF-IDF en Precision@3 (+21.4\%) et Precision@5 (+6.6\%). Les deux m\'{e}thodes obtiennent des performances identiques en P@1 (0.80), ce qui s'explique par le fait que le document le plus pertinent contient souvent les mots-cl\'{e}s exacts de la requ\^{e}te. L'avantage de la recherche s\'{e}mantique appara\^{\i}t sur les r\'{e}sultats suivants, o\`{u} les embeddings capturent la synonymie et la paraphrase que TF-IDF ne d\'{e}tecte pas.
 
 \begin{figure}[H]
 \centering
@@ -362,13 +363,13 @@ Les temps de r\'{e}ponse sont mesur\'{e}s sur 50 requ\^{e}tes al\'{e}atoires.
 \toprule
 \textbf{M\'{e}thode} & \textbf{Moy (ms)} & \textbf{M\'{e}d (ms)} & \textbf{Max (ms)} & \textbf{P95 (ms)} \\
 \midrule
-S\'{e}mantique  & 12.3 & 11.8 & 45.2 & 28.6 \\
-TF-IDF      & 8.7  & 7.9  & 32.4 & 19.3 \\
+S\'{e}mantique  & 19.8 & 18.5 & 32.1 & 26.2 \\
+TF-IDF      & 4.2  & 3.8  & 8.5  & 5.9  \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-TF-IDF est environ 29\% plus rapide que la recherche s\'{e}mantique. Cet \'{e}cart s'explique par le co\^{u}t de vectorisation de la requ\^{e}te par le mod\`{e}le Sentence-Transformer, qui n'existe pas pour TF-IDF (simple multiplication matrice creuse). N\'{e}anmoins, les temps de r\'{e}ponse de la recherche s\'{e}mantique restent largement inf\'{e}rieurs \`{a} 50~ms, ce qui est acceptable pour une application interactive.
+TF-IDF est environ 4.7$\times$ plus rapide que la recherche s\'{e}mantique (4.2~ms vs 19.8~ms en moyenne). Cet \'{e}cart s'explique par le co\^{u}t de vectorisation de la requ\^{e}te par le mod\`{e}le Sentence-Transformer (\~{}10~ms sur CPU), qui n'existe pas pour TF-IDF (simple multiplication matrice creuse). N\'{e}anmoins, les temps de r\'{e}ponse de la recherche s\'{e}mantique restent inf\'{e}rieurs \`{a} 35~ms, ce qui est parfaitement acceptable pour une application interactive.
 
 \begin{figure}[H]
 \centering
@@ -433,7 +434,7 @@ En revanche, TF-IDF reste comp\'{e}titif pour les requ\^{e}tes contenant des ter
 % ================================================================
 \section{Conclusion}
 
-Ce mini-projet a permis de concevoir et d'impl\'{e}menter un moteur de recherche s\'{e}mantique complet, depuis le t\'{e}l\'{e}chargement et le pr\'{e}traitement des donn\'{e}es jusqu'\`{a} l'\'{e}valuation quantitative des performances. Les r\'{e}sultats d\'{e}montrent clairement la sup\'{e}riorit\'{e} de la recherche s\'{e}mantique (+38.6\% en Precision@5) par rapport \`{a} l'approche lexicale TF-IDF, tout en maintenant des temps de r\'{e}ponse inf\'{e}rieurs \`{a} 50~ms.
+Ce mini-projet a permis de concevoir et d'impl\'{e}menter un moteur de recherche s\'{e}mantique complet, depuis le t\'{e}l\'{e}chargement et le pr\'{e}traitement des donn\'{e}es jusqu'\`{a} l'\'{e}valuation quantitative des performances. Les r\'{e}sultats d\'{e}montrent la sup\'{e}riorit\'{e} de la recherche s\'{e}mantique (+6.6\% en Precision@5, +21.4\% en Precision@3) par rapport \`{a} l'approche lexicale TF-IDF, tout en maintenant des temps de r\'{e}ponse inf\'{e}rieurs \`{a} 35~ms (moyenne 19.8~ms sur 1~964 documents).
 
 Les comp\'{e}tences acquises couvrent l'ensemble de la cha\^{\i}ne : manipulation de bases de donn\'{e}es vectorielles avec pgvector, g\'{e}n\'{e}ration d'embeddings avec Sentence-Transformers, indexation HNSW, et \'{e}valuation comparative de syst\`{e}mes de recherche d'information.
 

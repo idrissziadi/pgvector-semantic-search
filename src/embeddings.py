@@ -129,10 +129,13 @@ class EmbeddingGenerator:
 
 
 if __name__ == "__main__":
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
     logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(message)s")
 
-    preprocessor_module = __import__("src.preprocessing", fromlist=["TextPreprocessor"])
-    preprocessor = preprocessor_module.TextPreprocessor()
+    from src.preprocessing import TextPreprocessor
+    preprocessor = TextPreprocessor()
     docs = preprocessor.load_processed("data/processed/documents_clean.jsonl")
 
     gen = EmbeddingGenerator()
