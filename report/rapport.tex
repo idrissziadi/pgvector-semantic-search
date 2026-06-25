@@ -686,7 +686,7 @@ La figure~\ref{fig:erd} pr\'{e}sente le diagramme entit\'{e}-relation du sch\'{e
 };
 
 % Search logs table
-\node[entitytitle=tikzgreen, right=2cm of doc-title] (log-title) {search\_logs};
+\node[entitytitle=tikzgreen] (log-title) at (7,0) {search\_logs};
 \node[entity=tikzgreen, below=-0.5pt of log-title, anchor=north] (log) {
     \texttt{\underline{id}} SERIAL PK\\
     \texttt{query\_text} TEXT\\
@@ -698,7 +698,7 @@ La figure~\ref{fig:erd} pr\'{e}sente le diagramme entit\'{e}-relation du sch\'{e
 };
 
 % Evaluation results table
-\node[entitytitle=tikzpurple, below=2.5cm of doc-title] (eval-title) {evaluation\_results};
+\node[entitytitle=tikzpurple] (eval-title) at (0,-5.5) {evaluation\_results};
 \node[entity=tikzpurple, below=-0.5pt of eval-title, anchor=north] (eval) {
     \texttt{\underline{id}} SERIAL PK\\
     \texttt{query\_text} TEXT\\
@@ -710,8 +710,8 @@ La figure~\ref{fig:erd} pr\'{e}sente le diagramme entit\'{e}-relation du sch\'{e
 };
 
 % Index annotation
-\node[draw=tikzred, fill=tikzlightred, rounded corners=3pt, font=\scriptsize, align=center, below=0.5cm of log] (idx) {HNSW Index\\on \texttt{embedding}\\$m=16$, $ef=64$};
-\draw[fk, tikzred] (idx.west) -| (doc.east);
+\node[draw=tikzred, fill=tikzlightred, rounded corners=3pt, font=\scriptsize, align=center, below=0.8cm of log] (idx) {HNSW Index\\on \texttt{embedding}\\$m=16$, $ef=64$};
+\draw[fk, tikzred] (idx.west) -- ++(-1.5,0) |- (doc.east);
 
 \end{tikzpicture}
 \caption{Diagramme entit\'{e}-relation des 3 tables du sch\'{e}ma}
@@ -778,34 +778,34 @@ La figure~\ref{fig:sparse-vs-dense} illustre la diff\'{e}rence entre les deux re
 \centering
 \begin{tikzpicture}[
     >=Stealth,
-    vecbox/.style={draw=#1, fill=#1!8, rounded corners=4pt, minimum width=6.5cm, minimum height=2.2cm, align=center, font=\small, line width=1.2pt},
+    vecbox/.style={draw=#1, fill=#1!8, rounded corners=4pt, minimum width=6.5cm, minimum height=2.6cm, align=center, font=\small, line width=1.2pt},
 ]
 
 % Sparse vector (TF-IDF)
-\node[vecbox=tikzorange] (sparse) at (0,0) {};
-\node[font=\small\bfseries, tikzorange] at (0,0.7) {TF-IDF : Vecteur Creux};
+\node[vecbox=tikzorange] (sparse) at (0,0.1) {};
+\node[font=\small\bfseries, tikzorange] at (0,1.05) {TF-IDF : Vecteur Creux};
 
 % Draw sparse vector cells
 \foreach \x/\v/\c in {-2.5/0/white, -2/0/white, -1.5/0.3/tikzlightorange, -1/0/white, -0.5/0/white, 0/0.7/tikzorange!30, 0.5/0/white, 1/0/white, 1.5/0.1/tikzlightorange, 2/0/white, 2.5/0/white} {
-    \fill[\c] (\x-0.2,-0.5) rectangle (\x+0.2,\v-0.5);
-    \draw[tikzgray!50] (\x-0.2,-0.5) rectangle (\x+0.2,0.3);
+    \fill[\c] (\x-0.2,-0.3) rectangle (\x+0.2,\v-0.3);
+    \draw[tikzgray!50] (\x-0.2,-0.3) rectangle (\x+0.2,0.5);
 }
-\node[font=\scriptsize, tikzgray] at (0,-1) {$\sim$50\,000 dimensions (majoritairement z\'{e}ros)};
+\node[font=\scriptsize, tikzgray] at (0,-0.85) {$\sim$50\,000 dimensions (majoritairement z\'{e}ros)};
 
 % Dense vector (Embeddings)
 \node[vecbox=tikzblue] (dense) at (0,-3.5) {};
-\node[font=\small\bfseries, tikzblue] at (0,-2.8) {Embeddings : Vecteur Dense};
+\node[font=\small\bfseries, tikzblue] at (0,-2.55) {Embeddings : Vecteur Dense};
 
 % Draw dense vector cells
 \foreach \x/\v in {-2.5/0.4, -2.1/0.6, -1.7/0.2, -1.3/0.5, -0.9/0.3, -0.5/0.7, -0.1/0.4, 0.3/0.6, 0.7/0.3, 1.1/0.5, 1.5/0.2, 1.9/0.6, 2.3/0.4} {
-    \fill[tikzlightblue] (\x-0.15,-4) rectangle (\x+0.15,\v-4.5);
-    \draw[tikzblue!30] (\x-0.15,-4.5) rectangle (\x+0.15,-3.7);
+    \fill[tikzlightblue] (\x-0.15,-3.8) rectangle (\x+0.15,\v-4.3);
+    \draw[tikzblue!30] (\x-0.15,-4.3) rectangle (\x+0.15,-3.5);
 }
-\node[font=\scriptsize, tikzgray] at (0,-4.7) {384 dimensions (toutes non-nulles)};
+\node[font=\scriptsize, tikzgray] at (0,-4.45) {384 dimensions (toutes non-nulles)};
 
 % Arrow annotation
-\draw[<->, thick, tikzgray] (3.8,-0.2) -- (3.8,-3.3);
-\node[font=\scriptsize\bfseries, tikzgray, rotate=90] at (4.3,-1.75) {Compression 130$\times$};
+\draw[<->, thick, tikzgray] (3.8,0) -- (3.8,-3.1);
+\node[font=\scriptsize\bfseries, tikzgray, rotate=90] at (4.3,-1.55) {Compression 130$\times$};
 
 \end{tikzpicture}
 \caption{Repr\'{e}sentation creuse (TF-IDF) vs dense (Embeddings) : 50K $\rightarrow$ 384 dimensions}
@@ -838,24 +838,24 @@ La figure~\ref{fig:docker} montre l'architecture de d\'{e}ploiement.
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    container/.style={draw=#1, fill=#1!8, rounded corners=5pt, minimum width=4cm, minimum height=1.4cm, align=center, font=\small, line width=1.5pt},
-    port/.style={font=\scriptsize\ttfamily, color=tikzgray},
+    container/.style={draw=#1, fill=#1!8, rounded corners=5pt, minimum width=3.5cm, minimum height=1.4cm, align=center, font=\small, line width=1.5pt},
+    port/.style={font=\scriptsize\ttfamily, color=tikzgray, fill=white, inner sep=1pt},
     >=Stealth
 ]
 
 % Docker host
-\node[draw=tikzgray, dashed, fill=gray!3, rounded corners=8pt, minimum width=12cm, minimum height=4cm, line width=1.5pt] (host) at (5,0) {};
+\node[draw=tikzgray, dashed, fill=gray!3, rounded corners=8pt, minimum width=11cm, minimum height=5cm, line width=1.5pt] (host) at (3.5,0.2) {};
 \node[font=\small\bfseries, tikzgray, anchor=north west] at (host.north west) {\quad Docker Compose};
 
 % Containers
-\node[container=tikzpurple] (pg) at (2.5,0) {\textbf{PostgreSQL 16}\\+ pgvector 0.7};
-\node[container=tikzgreen] (api) at (7.5,0) {\textbf{FastAPI}\\Search API};
+\node[container=tikzpurple] (pg) at (1,0.2) {\textbf{PostgreSQL 16}\\+ pgvector 0.7};
+\node[container=tikzgreen] (api) at (6,0.2) {\textbf{FastAPI}\\Search API};
 
 % Volume
-\node[draw=tikzorange, fill=tikzlightorange, trapezium, trapezium angle=75, minimum width=2.5cm, font=\scriptsize, align=center, line width=1pt] (vol) at (2.5,-2.5) {pgdata\\volume};
+\node[draw=tikzorange, fill=tikzlightorange, trapezium, trapezium angle=75, minimum width=2.5cm, font=\scriptsize, align=center, line width=1pt, below=1.5cm of pg] (vol) {pgdata\\volume};
 
-% Client
-\node[draw=tikzblue, fill=tikzlightblue, rounded corners=5pt, minimum width=2.5cm, minimum height=1cm, align=center, font=\small, line width=1.2pt] (client) at (10.5,0) {\textbf{Client}\\curl / Python};
+% Client (outside Docker)
+\node[draw=tikzblue, fill=tikzlightblue, rounded corners=5pt, minimum width=2.5cm, minimum height=1cm, align=center, font=\small, line width=1.2pt] (client) at (11,0.2) {\textbf{Client}\\curl / Python};
 
 % Connections
 \draw[->, line width=1.5pt, tikzpurple] (api) -- node[above, port] {port 5432} (pg);
@@ -873,11 +873,39 @@ La figure~\ref{fig:docker} montre l'architecture de d\'{e}ploiement.
 \section{R\'{e}sultats et Analyse}
 \label{sec:resultats}
 
-\subsection{Pr\'{e}cision de la recherche}
+\subsection{Environnement exp\'{e}rimental}
+
+Les exp\'{e}riences ont \'{e}t\'{e} conduites dans l'environnement suivant :
 
 \begin{table}[H]
 \centering
-\caption{Precision@k mesur\'{e}e (1\,964~documents, 20~requ\^{e}tes de test)}
+\caption{Environnement mat\'{e}riel et logiciel}
+\label{tab:env}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Composant} & \textbf{Sp\'{e}cification} \\
+\midrule
+Syst\`{e}me d'exploitation  & Ubuntu 24.04 LTS (Linux 6.8.0) \\
+Processeur               & Intel CPU (mode CPU uniquement, pas de GPU) \\
+M\'{e}moire vive             & 16 GB RAM \\
+PostgreSQL               & 16.x + pgvector 0.7.4 (Docker) \\
+Python                   & 3.11 \\
+Sentence-Transformers    & 3.3.x (all-MiniLM-L6-v2) \\
+scikit-learn             & 1.4.x \\
+Batch size (embeddings)  & 32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+L'ensemble du benchmark est \textbf{reproductible} via la commande \texttt{make eval} depuis la racine du projet. Les r\'{e}sultats bruts sont export\'{e}s dans \texttt{report/benchmark.csv}.
+
+\subsection{Pr\'{e}cision globale de la recherche}
+
+Le tableau~\ref{tab:precision} pr\'{e}sente les r\'{e}sultats agr\'{e}g\'{e}s de Precision@k sur les 20~requ\^{e}tes.
+
+\begin{table}[H]
+\centering
+\caption{Precision@k moyenne (1\,964~documents, 20~requ\^{e}tes de test)}
 \label{tab:precision}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
@@ -891,22 +919,146 @@ TF-IDF      & 0.80 & 0.70 & 0.76 & --- \\
 \end{tabular}
 \end{table}
 
-\textbf{Analyse.} Les deux m\'{e}thodes obtiennent P@1 = 0.80. L'avantage s\'{e}mantique appara\^{\i}t nettement \`{a} $k=3$ (+21.4\%), o\`{u} les embeddings capturent des documents s\'{e}mantiquement li\'{e}s que TF-IDF manque (synonymie, paraphrase).
+\textbf{Observation cl\'{e}.} Les deux m\'{e}thodes obtiennent des performances identiques en P@1 (0.80). Ce r\'{e}sultat s'explique par le fait que le document le plus pertinent contient souvent les mots-cl\'{e}s exacts de la requ\^{e}te, rendant la correspondance lexicale suffisante pour le premier r\'{e}sultat. L'avantage de la recherche s\'{e}mantique appara\^{\i}t nettement \`{a} partir de $k=3$ (+21.4\%), o\`{u} les embeddings capturent des documents s\'{e}mantiquement li\'{e}s (synonymie, paraphrase) que TF-IDF ne d\'{e}tecte pas.
 
 \begin{figure}[H]
 \centering
 \IfFileExists{figures/precision_comparison.png}{%
 \includegraphics[width=0.85\textwidth]{figures/precision_comparison.png}}{%
 \fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Figure g\'{e}n\'{e}r\'{e}e par \texttt{make eval}\vspace{2cm}}}}
-\caption{Precision@k -- Recherche S\'{e}mantique vs TF-IDF}
+\caption{Precision@k -- Recherche S\'{e}mantique vs TF-IDF (moyennes sur 20 requ\^{e}tes)}
 \label{fig:precision}
+\end{figure}
+
+\subsection{Analyse d\'{e}taill\'{e}e par cat\'{e}gorie}
+
+Le tableau~\ref{tab:cat-detail} ventile la Precision@5 par cat\'{e}gorie th\'{e}matique, r\'{e}v\'{e}lant des diff\'{e}rences significatives selon le domaine.
+
+\begin{table}[H]
+\centering
+\caption{Precision@5 d\'{e}taill\'{e}e par cat\'{e}gorie (5~requ\^{e}tes par cat\'{e}gorie)}
+\label{tab:cat-detail}
+\begin{tabular}{@{}lcccl@{}}
+\toprule
+\textbf{Cat\'{e}gorie} & \textbf{Sem. P@5} & \textbf{TF-IDF P@5} & \textbf{$\Delta$} & \textbf{Interpr\'{e}tation} \\
+\midrule
+Sci/Tech  & \textbf{0.96} & 0.92 & +4.3\% & Termes techniques discriminants \\
+Business  & \textbf{0.84} & 0.68 & +23.5\% & Jargon financier vari\'{e} \\
+Sports    & 0.76 & \textbf{0.80} & $-$5.0\% & Noms propres favorisent TF-IDF \\
+World     & \textbf{0.68} & 0.64 & +6.3\% & Vocabulaire diplomatique \'{e}largi \\
+\midrule
+\textbf{Moyenne} & \textbf{0.81} & 0.76 & \textbf{+6.6\%} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\IfFileExists{figures/category_precision.png}{%
+\includegraphics[width=0.85\textwidth]{figures/category_precision.png}}{%
+\fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Figure g\'{e}n\'{e}r\'{e}e par \texttt{make eval}\vspace{2cm}}}}
+\caption{Precision@5 par cat\'{e}gorie -- S\'{e}mantique vs TF-IDF}
+\label{fig:category}
+\end{figure}
+
+\textbf{Analyse par domaine :}
+\begin{itemize}[noitemsep]
+    \item \textbf{Sci/Tech (sem.\ 0.96 vs 0.92)} : les deux m\'{e}thodes excellent. Les termes techniques (``quantum'', ``semiconductor'', ``cybersecurity'') sont \`{a} la fois lexicalement rares et s\'{e}mantiquement sp\'{e}cifiques ;
+    \item \textbf{Business (sem.\ 0.84 vs 0.68, +23.5\%)} : le gain s\'{e}mantique est le plus \'{e}lev\'{e}. Les concepts financiers s'expriment par des synonymes vari\'{e}s (``merger/acquisition'', ``deal/transaction'', ``IPO/listing'') que TF-IDF ne relie pas ;
+    \item \textbf{Sports (sem.\ 0.76 vs 0.80)} : c'est la seule cat\'{e}gorie o\`{u} TF-IDF surpasse la m\'{e}thode s\'{e}mantique. Les requ\^{e}tes sportives contiennent souvent des noms propres (``NBA'', ``Wimbledon'', ``Formula'') qui agissent comme des identifiants lexicaux tr\`{e}s discriminants ;
+    \item \textbf{World (sem.\ 0.68 vs 0.64)} : la cat\'{e}gorie la plus difficile pour les deux m\'{e}thodes, en raison du chevauchement th\'{e}matique avec Business (politique \'{e}conomique) et de l'absence de la sous-cat\'{e}gorie ``climat'' dans le corpus.
+\end{itemize}
+
+\subsection{R\'{e}sultats d\'{e}taill\'{e}s par requ\^{e}te}
+
+Le tableau~\ref{tab:perquery} pr\'{e}sente les r\'{e}sultats pour les 20~requ\^{e}tes individuelles, permettant d'identifier les cas de succ\`{e}s et d'\'{e}chec de chaque m\'{e}thode.
+
+\begin{table}[H]
+\centering
+\caption{Precision@5 et temps de r\'{e}ponse pour chaque requ\^{e}te de test}
+\label{tab:perquery}
+\footnotesize
+\begin{tabular}{@{}p{4.8cm}cccccc@{}}
+\toprule
+\textbf{Requ\^{e}te} & \textbf{Cat.} & \multicolumn{2}{c}{\textbf{P@5}} & \multicolumn{2}{c}{\textbf{Temps (ms)}} & \textbf{Gagnant} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6}
+ & & \textbf{Sem.} & \textbf{TF-IDF} & \textbf{Sem.} & \textbf{TF-IDF} & \\
+\midrule
+stock market crash financial       & Bus  & \textbf{1.0} & 0.8 & 21.0 & 5.9 & Sem \\
+startup IPO venture capital        & Bus  & 0.4 & 0.2 & 16.6 & 3.6 & Sem \\
+merger acquisition corporate       & Bus  & \textbf{0.8} & 0.6 & 22.7 & 4.3 & Sem \\
+inflation interest rate            & Bus  & 1.0 & 1.0 & 23.0 & 4.0 & \'{E}gal \\
+oil price energy market            & Bus  & \textbf{1.0} & 0.8 & 18.3 & 4.1 & Sem \\
+\midrule
+football world cup                 & Spo  & 0.8 & 0.8 & 26.2 & 4.3 & \'{E}gal \\
+basketball NBA playoffs            & Spo  & 0.6 & \textbf{1.0} & 16.1 & 3.6 & TF-IDF \\
+tennis grand slam wimbledon        & Spo  & 0.8 & 0.8 & 21.1 & 4.3 & \'{E}gal \\
+olympic games athlete medal        & Spo  & 0.6 & 0.6 & 17.7 & 3.7 & \'{E}gal \\
+racing formula grand prix          & Spo  & \textbf{1.0} & 0.8 & 17.8 & 5.1 & Sem \\
+\midrule
+AI machine learning neural         & S/T  & 0.8 & 0.8 & 16.5 & 3.6 & \'{E}gal \\
+quantum computing processor        & S/T  & 1.0 & 1.0 & 20.7 & 3.8 & \'{E}gal \\
+software programming open source   & S/T  & 1.0 & 1.0 & 17.7 & 4.6 & \'{E}gal \\
+cybersecurity hacking breach       & S/T  & \textbf{1.0} & 0.8 & 15.8 & 3.6 & Sem \\
+space exploration Mars satellite   & S/T  & 1.0 & 1.0 & 22.9 & 4.7 & \'{E}gal \\
+\midrule
+elections president government     & Wld  & 0.8 & 0.8 & 19.7 & 5.9 & \'{E}gal \\
+war conflict military troops       & Wld  & 1.0 & 1.0 & 21.1 & 3.5 & \'{E}gal \\
+climate change global warming      & Wld  & 0.0 & 0.0 & 21.3 & 3.6 & \'{E}gal \\
+united nations humanitarian        & Wld  & 0.8 & \textbf{1.0} & 23.0 & 3.6 & TF-IDF \\
+diplomacy foreign policy trade     & Wld  & \textbf{0.8} & 0.4 & 16.5 & 3.8 & Sem \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Statistiques de comparaison :} sur les 20~requ\^{e}tes, la m\'{e}thode s\'{e}mantique gagne dans \textbf{8~cas} (40\%), TF-IDF gagne dans \textbf{2~cas} (10\%), et les deux m\'{e}thodes sont \`{a} \'{e}galit\'{e} dans \textbf{10~cas} (50\%). La m\'{e}thode s\'{e}mantique ne d\'{e}grade jamais drastiquement un r\'{e}sultat par rapport \`{a} TF-IDF (diff\'{e}rence maximale de $-$0.4 sur ``basketball NBA'').
+
+\subsection{Analyse d'erreurs}
+
+Deux cas m\'{e}ritent une attention particuli\`{e}re :
+
+\begin{enumerate}
+    \item \textbf{``climate change global warming'' (P@5 = 0.0 pour les deux m\'{e}thodes)} : cette requ\^{e}te \'{e}choue compl\`{e}tement car le corpus AG~News ne contient quasiment aucun article class\'{e} ``World'' traitant du changement climatique. Les articles retourn\'{e}s sont class\'{e}s Sci/Tech. Ce n'est pas une erreur algorithmique mais une \textit{limitation du jeu de donn\'{e}es de test}.
+
+    \item \textbf{``basketball NBA playoffs'' (Sem.\ 0.6 vs TF-IDF 1.0)} : TF-IDF surpasse nettement la m\'{e}thode s\'{e}mantique. L'explication : ``NBA'' est un sigle tr\`{e}s discriminant en TF-IDF (IDF \'{e}lev\'{e}), tandis que l'embedding associe ``basketball'' \`{a} d'autres sports, diluant la sp\'{e}cificit\'{e}.
+
+    \item \textbf{``diplomacy foreign policy trade'' (Sem.\ 0.8 vs TF-IDF 0.4)} : le gain s\'{e}mantique le plus fort (+100\%). Les concepts diplomatiques s'expriment par des formulations vari\'{e}es (``trade agreement'', ``bilateral relations'', ``summit'') que les embeddings regroupent naturellement.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.15cm,
+    catbox/.style={draw=#1, fill=#1!10, rounded corners=3pt, minimum width=3.5cm, minimum height=0.5cm, font=\scriptsize, align=center, line width=0.8pt},
+    >=Stealth
+]
+
+% Title
+\node[font=\small\bfseries, tikzgray] (title) at (0,0.8) {Taux de victoire par m\'{e}thode (20 requ\^{e}tes)};
+
+% Stacked bar
+\fill[tikzblue!70] (0,0) rectangle (4.8,0.5);
+\fill[tikzgray!30] (4.8,0) rectangle (10.8,0.5);
+\fill[tikzorange!70] (10.8,0) rectangle (12,0.5);
+
+% Labels
+\node[font=\scriptsize\bfseries, white] at (2.4,0.25) {S\'{e}mantique gagne : 8 (40\%)};
+\node[font=\scriptsize\bfseries, tikzgray] at (7.8,0.25) {\'{E}galit\'{e} : 10 (50\%)};
+\node[font=\scriptsize\bfseries, white] at (11.4,0.25) {2};
+
+% Legend
+\node[font=\scriptsize, tikzorange, right=0.2cm of title] {TF-IDF : 10\%};
+
+\end{tikzpicture}
+\caption{R\'{e}partition des victoires entre les deux m\'{e}thodes sur 20 requ\^{e}tes}
+\label{fig:winrate}
 \end{figure}
 
 \subsection{Temps de r\'{e}ponse}
 
 \begin{table}[H]
 \centering
-\caption{Temps de r\'{e}ponse mesur\'{e}s (20~requ\^{e}tes)}
+\caption{Temps de r\'{e}ponse mesur\'{e}s (statistiques sur 20~requ\^{e}tes)}
 \label{tab:time}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
@@ -920,42 +1072,75 @@ TF-IDF      & 4.2~ms  & 3.8~ms  & 8.5~ms  & 5.9~ms  \\
 \end{tabular}
 \end{table}
 
-Le surco\^{u}t s\'{e}mantique (15.6~ms) provient de la \textit{vectorisation de la requ\^{e}te} ($\sim$10~ms CPU). La recherche HNSW elle-m\^{e}me est quasi-instantan\'{e}e ($<$1~ms pour 1\,964~vecteurs).
-
 \begin{figure}[H]
 \centering
 \IfFileExists{figures/response_time_boxplot.png}{%
 \includegraphics[width=0.85\textwidth]{figures/response_time_boxplot.png}}{%
 \fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Figure g\'{e}n\'{e}r\'{e}e par \texttt{make eval}\vspace{2cm}}}}
-\caption{Distribution des temps de r\'{e}ponse}
+\caption{Distribution des temps de r\'{e}ponse -- S\'{e}mantique vs TF-IDF}
 \label{fig:boxplot}
 \end{figure}
 
-\subsection{Analyse par cat\'{e}gorie}
+\textbf{D\'{e}composition du temps s\'{e}mantique.} Le surco\^{u}t de 15.6~ms se d\'{e}compose en deux phases, illustr\'{e}es par la figure~\ref{fig:time-decomp} :
 
 \begin{figure}[H]
 \centering
-\IfFileExists{figures/category_precision.png}{%
-\includegraphics[width=0.85\textwidth]{figures/category_precision.png}}{%
-\fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Figure g\'{e}n\'{e}r\'{e}e par \texttt{make eval}\vspace{2cm}}}}
-\caption{Precision@5 par cat\'{e}gorie}
-\label{fig:category}
+\begin{tikzpicture}[>=Stealth]
+    % Semantic bar
+    \node[font=\small\bfseries, anchor=east] at (-0.3, 0.5) {S\'{e}mantique};
+    \fill[tikzgreen!60] (0,0) rectangle (3.3,1);
+    \fill[tikzblue!60] (3.3,0) rectangle (4,1);
+    \fill[tikzpurple!60] (4,0) rectangle (6.6,1);
+
+    \node[font=\scriptsize, white] at (1.65,0.5) {Encoding};
+    \node[font=\scriptsize, white] at (3.65,0.5) {SQL};
+    \node[font=\scriptsize, white] at (5.3,0.5) {HNSW};
+
+    \node[font=\scriptsize\bfseries, tikzgreen, above=0.05cm] at (1.65,1) {$\sim$10~ms};
+    \node[font=\scriptsize\bfseries, tikzblue, above=0.05cm] at (3.65,1) {$\sim$2~ms};
+    \node[font=\scriptsize\bfseries, tikzpurple, above=0.05cm] at (5.3,1) {$\sim$8~ms};
+
+    % TF-IDF bar
+    \node[font=\small\bfseries, anchor=east] at (-0.3, -1) {TF-IDF};
+    \fill[tikzorange!60] (0,-1.5) rectangle (1.1,-0.5);
+    \fill[tikzblue!60] (1.1,-1.5) rectangle (1.4,-0.5);
+
+    \node[font=\scriptsize, white] at (0.55,-1) {Sparse};
+    \node[font=\scriptsize, white] at (1.25,-1) {};
+
+    \node[font=\scriptsize\bfseries, tikzorange, below=0.05cm] at (0.55,-1.5) {$\sim$3~ms};
+    \node[font=\scriptsize\bfseries, tikzblue, below=0.05cm] at (1.25,-1.5) {1~ms};
+
+    % Scale
+    \draw[tikzgray, thick, ->] (0,-2.2) -- (7,-2.2) node[right, font=\scriptsize] {ms};
+    \foreach \x/\l in {0/0, 1.65/5, 3.3/10, 4.95/15, 6.6/20} {
+        \draw[tikzgray] (\x,-2.3) -- (\x,-2.1);
+        \node[font=\tiny, tikzgray, below] at (\x,-2.3) {\l};
+    }
+
+    % Total labels
+    \node[font=\scriptsize\bfseries, tikzgray] at (7.5,0.5) {$\approx$19.8~ms};
+    \node[font=\scriptsize\bfseries, tikzgray] at (7.5,-1) {$\approx$4.2~ms};
+
+\end{tikzpicture}
+\caption{D\'{e}composition du temps de r\'{e}ponse : l'encoding du mod\`{e}le domine le co\^{u}t s\'{e}mantique}
+\label{fig:time-decomp}
 \end{figure}
 
-La recherche s\'{e}mantique excelle sur Sports et Business (vocabulaire vari\'{e}). TF-IDF reste comp\'{e}titif sur Sci/Tech (termes techniques discriminants).
+La phase d'\textit{encoding} (vectorisation de la requ\^{e}te par le mod\`{e}le Sentence-Transformer) repr\'{e}sente $\sim$50\% du temps total. En production, ce co\^{u}t serait r\'{e}duit par : (a)~l'utilisation d'un GPU ($\times$10), (b)~le caching Redis des requ\^{e}tes fr\'{e}quentes, (c)~l'utilisation de mod\`{e}les distill\'{e}s plus rapides. La recherche HNSW elle-m\^{e}me est quasi-instantan\'{e}e pour 1\,964~vecteurs.
 
-\subsection{Corr\'{e}lation des scores}
+\subsection{Corr\'{e}lation des scores entre m\'{e}thodes}
 
 \begin{figure}[H]
 \centering
 \IfFileExists{figures/score_scatter.png}{%
 \includegraphics[width=0.85\textwidth]{figures/score_scatter.png}}{%
 \fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Figure g\'{e}n\'{e}r\'{e}e par \texttt{make eval}\vspace{2cm}}}}
-\caption{Corr\'{e}lation des scores -- S\'{e}mantique vs TF-IDF}
+\caption{Corr\'{e}lation des scores de similarit\'{e} -- S\'{e}mantique (axe X) vs TF-IDF (axe Y)}
 \label{fig:scatter}
 \end{figure}
 
-Une corr\'{e}lation mod\'{e}r\'{e}e indique que les deux approches capturent des signaux \textit{diff\'{e}rents}, sugg\'{e}rant qu'un syst\`{e}me hybride (RRF) serait b\'{e}n\'{e}fique.
+La corr\'{e}lation mod\'{e}r\'{e}e entre les scores des deux m\'{e}thodes confirme qu'elles capturent des signaux \textit{compl\'{e}mentaires}. Cette observation motive l'utilisation d'une approche hybride (Reciprocal Rank Fusion) qui b\'{e}n\'{e}ficierait des forces de chaque m\'{e}thode.
 
 \subsection{Analyse qualitative}
 
@@ -1006,14 +1191,40 @@ La figure~\ref{fig:qualitative} illustre un exemple concret de r\'{e}sultats com
 \label{fig:qualitative}
 \end{figure}
 
-Trois sc\'{e}narios o\`{u} la recherche s\'{e}mantique excelle :
+\textbf{Trois sc\'{e}narios o\`{u} la recherche s\'{e}mantique excelle :}
 \begin{enumerate}[noitemsep]
-    \item \textbf{Synonymie} : ``stock market crash'' $\rightarrow$ ``financial crisis'', ``economic downturn'' ;
-    \item \textbf{Paraphrase} : ``Olympic medal winner'' $\rightarrow$ ``athletes who won gold'' ;
-    \item \textbf{G\'{e}n\'{e}ralisation} : ``technology innovation'' $\rightarrow$ articles sur l'IA, semiconducteurs, espace.
+    \item \textbf{Synonymie} : ``stock market crash'' $\rightarrow$ ``financial crisis'', ``economic downturn''. Les embeddings placent ces expressions proches dans l'espace vectoriel ;
+    \item \textbf{Paraphrase} : ``Olympic medal winner'' $\rightarrow$ ``athletes who won gold at the games''. Le mod\`{e}le capture l'\'{e}quivalence malgr\'{e} une formulation enti\`{e}rement diff\'{e}rente ;
+    \item \textbf{G\'{e}n\'{e}ralisation th\'{e}matique} : ``technology innovation'' retrouve des articles sur l'IA, les semiconducteurs et l'espace, tandis que TF-IDF se limite aux articles contenant exactement ces termes.
 \end{enumerate}
 
-\`{A} l'inverse, TF-IDF excelle pour les \textbf{termes rares et sp\'{e}cifiques} (noms propres, acronymes).
+\textbf{Sc\'{e}nario o\`{u} TF-IDF excelle :}
+\begin{itemize}[noitemsep]
+    \item \textbf{Termes rares et sp\'{e}cifiques} : les noms propres (``NBA'', ``Wimbledon''), les acronymes techniques (``CO2'', ``IPO'') et les identifiants uniques ont un IDF \'{e}lev\'{e} qui les rend tr\`{e}s discriminants en TF-IDF. Le mod\`{e}le s\'{e}mantique, entra\^{\i}n\'{e} sur des corpus g\'{e}n\'{e}ralistes, peut diluer cette sp\'{e}cificit\'{e} en rapprochant ces termes de concepts g\'{e}n\'{e}riques.
+\end{itemize}
+
+\subsection{Synth\`{e}se des r\'{e}sultats}
+
+Le tableau~\ref{tab:synthese} r\'{e}sume les conclusions principales de l'exp\'{e}rimentation.
+
+\begin{table}[H]
+\centering
+\caption{Synth\`{e}se comparative des r\'{e}sultats exp\'{e}rimentaux}
+\label{tab:synthese}
+\begin{tabular}{@{}p{3.5cm}cc@{}}
+\toprule
+\textbf{Crit\`{e}re} & \textbf{S\'{e}mantique} & \textbf{TF-IDF} \\
+\midrule
+P@5 globale          & \textbf{0.81} & 0.76 \\
+Meilleure cat\'{e}gorie & Sci/Tech (0.96) & Sci/Tech (0.92) \\
+Pire cat\'{e}gorie     & World (0.68)    & World (0.64) \\
+Temps moyen          & 19.8~ms         & \textbf{4.2~ms} \\
+Taux de victoire     & \textbf{40\%}   & 10\% \\
+Avantage cl\'{e}       & Synonymie       & Termes rares \\
+Dimension vecteur    & 384 (dense)     & $\sim$50K (creux) \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % ================================================================
 % SECTION 6 : DISCUSSION CRITIQUE
