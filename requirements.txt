@@ -1,0 +1,16 @@
+sentence-transformers==3.4.1
+psycopg2-binary==2.9.9
+pgvector==0.3.2
+python-dotenv==1.0.0
+pandas==2.2.0
+scikit-learn==1.4.0
+numpy==1.26.4
+datasets==2.18.0
+tqdm==4.66.2
+matplotlib==3.8.3
+seaborn==0.13.2
+fastapi==0.111.0
+uvicorn==0.29.0
+tabulate==0.9.0
+pytest==8.1.0
+pytest-cov==5.0.0
