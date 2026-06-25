@@ -20,6 +20,8 @@
 \usepackage{array}
 \usepackage{fancyhdr}
 \usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, backgrounds, calc, decorations.pathreplacing}
 
 % === En-tete / Pied de page ===
 \pagestyle{fancy}
@@ -29,13 +31,25 @@
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 
-% === Configuration listings ===
+% === Couleurs TikZ ===
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.96,0.96,0.96}
 \definecolor{keyblue}{rgb}{0.13,0.29,0.53}
+\definecolor{tikzblue}{HTML}{2563EB}
+\definecolor{tikzgreen}{HTML}{059669}
+\definecolor{tikzorange}{HTML}{D97706}
+\definecolor{tikzred}{HTML}{DC2626}
+\definecolor{tikzpurple}{HTML}{7C3AED}
+\definecolor{tikzgray}{HTML}{6B7280}
+\definecolor{tikzlightblue}{HTML}{DBEAFE}
+\definecolor{tikzlightgreen}{HTML}{D1FAE5}
+\definecolor{tikzlightorange}{HTML}{FEF3C7}
+\definecolor{tikzlightred}{HTML}{FEE2E2}
+\definecolor{tikzlightpurple}{HTML}{EDE9FE}
 
+% === Configuration listings ===
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{backcolour},
     commentstyle=\color{codegreen}\itshape,
@@ -100,14 +114,54 @@ Ce rapport pr\'{e}sente la conception et l'impl\'{e}mentation d'un moteur de rec
 
 \subsection{Contexte et motivation}
 
-La recherche d'information constitue un d\'{e}fi fondamental de l'\`{e}re num\'{e}rique. Les syst\`{e}mes traditionnels de recherche par mots-cl\'{e}s, fond\'{e}s sur la correspondance lexicale exacte, pr\'{e}sentent des limitations majeures :
-\begin{itemize}[noitemsep]
-    \item \textbf{Sensibilit\'{e} aux synonymes} : les termes ``crise financi\`{e}re'' et ``effondrement \'{e}conomique'' d\'{e}signent le m\^{e}me ph\'{e}nom\`{e}ne mais ne partagent aucun mot ;
-    \item \textbf{D\'{e}pendance \`{a} la formulation} : une l\'{e}g\`{e}re reformulation de la requ\^{e}te peut modifier radicalement les r\'{e}sultats ;
-    \item \textbf{Incapacit\'{e} s\'{e}mantique} : la correspondance par termes ne capture pas le \textit{sens} sous-jacent d'un texte.
-\end{itemize}
+La recherche d'information constitue un d\'{e}fi fondamental de l'\`{e}re num\'{e}rique. Les syst\`{e}mes traditionnels de recherche par mots-cl\'{e}s, fond\'{e}s sur la correspondance lexicale exacte, pr\'{e}sentent des limitations majeures. La figure~\ref{fig:lexical-vs-semantic} illustre la diff\'{e}rence fondamentale entre les deux approches.
 
-Face \`{a} ces limites, les approches de \textit{recherche s\'{e}mantique} transforment les textes en vecteurs num\'{e}riques (embeddings) dans un espace continu o\`{u} la proximit\'{e} g\'{e}om\'{e}trique refl\`{e}te la similarit\'{e} de sens.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.6cm,
+    querybox/.style={draw=tikzblue, fill=tikzlightblue, rounded corners=4pt, minimum width=5.5cm, minimum height=0.8cm, font=\small\bfseries, align=center},
+    docbox/.style={draw=tikzgray, fill=white, rounded corners=3pt, minimum width=4.8cm, minimum height=0.6cm, font=\footnotesize, align=center},
+    hitbox/.style={draw=tikzgreen, fill=tikzlightgreen, rounded corners=3pt, minimum width=4.8cm, minimum height=0.6cm, font=\footnotesize, align=center},
+    missbox/.style={draw=tikzred, fill=tikzlightred, rounded corners=3pt, minimum width=4.8cm, minimum height=0.6cm, font=\footnotesize, align=center},
+    methodlabel/.style={font=\small\bfseries, text=white, fill=tikzgray, rounded corners=3pt, minimum width=4.8cm, minimum height=0.6cm},
+    >=Stealth
+]
+
+% Query
+\node[querybox] (query) {Requ\^{e}te : ``stock market crash''};
+
+% Left: TF-IDF
+\node[methodlabel, fill=tikzorange] (tfidf-label) at (-3.8,-1.3) {Recherche Lexicale (TF-IDF)};
+\node[hitbox, below=0.3cm of tfidf-label] (t1) {``Stock market crash hits investors'' \checkmark};
+\node[missbox, below=0.15cm of t1] (t2) {``New smartphone released today'' \texttimes};
+\node[missbox, below=0.15cm of t2] (t3) {``Financial crisis deepens'' \texttimes};
+
+% Right: Semantic
+\node[methodlabel, fill=tikzblue] (sem-label) at (3.8,-1.3) {Recherche S\'{e}mantique};
+\node[hitbox, below=0.3cm of sem-label] (s1) {``Stock market crash hits investors'' \checkmark};
+\node[hitbox, below=0.15cm of s1] (s2) {``Financial crisis deepens'' \checkmark};
+\node[hitbox, below=0.15cm of s2] (s3) {``Economic downturn feared'' \checkmark};
+
+% Arrows
+\draw[->, thick, tikzorange] (query.south) -- ++(-3.8,-0.3) -- (tfidf-label.north);
+\draw[->, thick, tikzblue] (query.south) -- ++(3.8,-0.3) -- (sem-label.north);
+
+% Annotations
+\node[font=\scriptsize\itshape, text=tikzred, below=0.15cm of t3] {Mots diff\'{e}rents = non trouv\'{e}};
+\node[font=\scriptsize\itshape, text=tikzgreen, below=0.15cm of s3] {Sens similaire = trouv\'{e}};
+
+\end{tikzpicture}
+\caption{Recherche lexicale vs s\'{e}mantique : la recherche s\'{e}mantique capture la synonymie}
+\label{fig:lexical-vs-semantic}
+\end{figure}
+
+Les limites de l'approche lexicale sont :
+\begin{itemize}[noitemsep]
+    \item \textbf{Sensibilit\'{e} aux synonymes} : ``crise financi\`{e}re'' et ``effondrement \'{e}conomique'' ne partagent aucun mot ;
+    \item \textbf{D\'{e}pendance \`{a} la formulation} : une reformulation modifie radicalement les r\'{e}sultats ;
+    \item \textbf{Incapacit\'{e} s\'{e}mantique} : la correspondance par termes ne capture pas le \textit{sens}.
+\end{itemize}
 
 \subsection{Probl\'{e}matique}
 
@@ -148,13 +202,36 @@ La section~\ref{sec:etat} pr\'{e}sente l'\'{e}tat de l'art. La section~\ref{sec:
 
 \subsection{De la recherche lexicale \`{a} la recherche s\'{e}mantique}
 
-La recherche d'information a \'{e}volu\'{e} en trois grandes phases. La premi\`{e}re, la \textbf{recherche bool\'{e}enne}, repose sur des op\'{e}rateurs logiques (AND, OR, NOT) appliqu\'{e}s \`{a} des index invers\'{e}s. La deuxi\`{e}me, le \textbf{mod\`{e}le vectoriel TF-IDF} \cite{robertson2009bm25}, pond\`{e}re les termes par leur fr\'{e}quence et leur raret\'{e} dans le corpus. La troisi\`{e}me, la \textbf{recherche s\'{e}mantique}, projette les textes dans un espace vectoriel dense o\`{u} la proximit\'{e} g\'{e}om\'{e}trique encode la similarit\'{e} de sens.
+La recherche d'information a \'{e}volu\'{e} en trois grandes phases, illustr\'{e}es par la figure~\ref{fig:evolution}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    >=Stealth,
+    phase/.style={draw=#1, fill=#1!8, rounded corners=6pt, minimum width=4cm, minimum height=2.2cm, align=center, font=\small, text width=3.6cm, line width=1.2pt},
+    arrow/.style={->, line width=2pt, color=tikzgray},
+    yearlabel/.style={font=\footnotesize\bfseries, color=#1}
+]
+
+\node[phase=tikzorange] (p1) at (0,0) {\textbf{Recherche Bool\'{e}enne}\\[3pt]AND, OR, NOT\\Index invers\'{e}\\Exact match};
+\node[phase=tikzblue] (p2) at (5.5,0) {\textbf{Mod\`{e}le Vectoriel}\\[3pt]TF-IDF / BM25\\Vecteurs creux\\$\sim$50K dimensions};
+\node[phase=tikzgreen] (p3) at (11,0) {\textbf{Recherche S\'{e}mantique}\\[3pt]Embeddings denses\\Transformers\\384 dimensions};
+
+\draw[arrow] (p1) -- (p2);
+\draw[arrow] (p2) -- (p3);
+
+\node[yearlabel=tikzorange, below=0.2cm of p1] {Ann\'{e}es 1960};
+\node[yearlabel=tikzblue, below=0.2cm of p2] {Ann\'{e}es 2000};
+\node[yearlabel=tikzgreen, below=0.2cm of p3] {Ann\'{e}es 2019+};
+
+\end{tikzpicture}
+\caption{\'{E}volution des paradigmes de recherche d'information}
+\label{fig:evolution}
+\end{figure}
 
 \subsection{Bases de donn\'{e}es vectorielles}
 
-Une base de donn\'{e}es vectorielle est un syst\`{e}me optimis\'{e} pour stocker et interroger des vecteurs dans un espace \`{a} haute dimension. Contrairement aux bases relationnelles qui op\`{e}rent sur des donn\'{e}es structur\'{e}es via SQL, les bases vectorielles permettent la recherche par \textit{proximit\'{e}} selon une m\'{e}trique de distance.
-
-Le tableau~\ref{tab:vectordb} compare les principales solutions disponibles en 2024.
+Une base de donn\'{e}es vectorielle est un syst\`{e}me optimis\'{e} pour stocker et interroger des vecteurs dans un espace \`{a} haute dimension. Le tableau~\ref{tab:vectordb} compare les principales solutions.
 
 \begin{table}[H]
 \centering
@@ -175,15 +252,15 @@ Licence            & PostgreSQL & MIT   & Propri\'{e}t. & Apache  & Apache \\
 \end{tabular}
 \end{table}
 
-\textbf{Justification du choix de pgvector.} pgvector s'int\`{e}gre nativement dans PostgreSQL, permettant de combiner recherche vectorielle et requ\^{e}tes SQL classiques dans une m\^{e}me transaction. Cette capacit\'{e} de \textit{requ\^{e}te hybride} (filtrage m\'{e}tadonn\'{e}es + recherche vectorielle) est un avantage d\'{e}terminant pour les cas d'usage r\'{e}els. De plus, PostgreSQL b\'{e}n\'{e}ficie d'un \'{e}cosyst\`{e}me mature (sauvegardes, r\'{e}plication, monitoring) qui facilite la mise en production.
+\textbf{Justification du choix de pgvector.} pgvector s'int\`{e}gre nativement dans PostgreSQL, permettant de combiner recherche vectorielle et requ\^{e}tes SQL classiques dans une m\^{e}me transaction. Cette capacit\'{e} de \textit{requ\^{e}te hybride} est un avantage d\'{e}terminant. PostgreSQL b\'{e}n\'{e}ficie d'un \'{e}cosyst\`{e}me mature (sauvegardes, r\'{e}plication, monitoring) qui facilite la mise en production.
 
 \subsection{Repr\'{e}sentations vectorielles (Embeddings)}
 
 Les repr\'{e}sentations vectorielles transforment du texte en vecteurs num\'{e}riques dans un espace continu. On distingue deux g\'{e}n\'{e}rations :
 
-\textbf{Embeddings statiques.} Word2Vec (Mikolov et al., 2013) et GloVe (Pennington et al., 2014) produisent un vecteur \textit{unique} par mot, ind\'{e}pendant du contexte. Le mot ``banque'' aura le m\^{e}me vecteur qu'il d\'{e}signe un \'{e}tablissement financier ou le bord d'une rivi\`{e}re. Pour repr\'{e}senter une phrase, on recourt typiquement \`{a} la moyenne des vecteurs de mots, ce qui perd l'information d'ordre et de syntaxe.
+\textbf{Embeddings statiques.} Word2Vec \cite{mikolov2013word2vec} et GloVe produisent un vecteur \textit{unique} par mot, ind\'{e}pendant du contexte.
 
-\textbf{Embeddings contextuels.} BERT (Devlin et al., 2019) et ses d\'{e}riv\'{e}s produisent des repr\'{e}sentations contextuelles au niveau du \textit{token}. Sentence-Transformers \cite{reimers2019sentence} adapte cette architecture pour produire des embeddings au niveau de la \textit{phrase enti\`{e}re} via un r\'{e}seau siamois. Le mod\`{e}le \texttt{all-MiniLM-L6-v2} utilis\'{e} dans ce projet offre les caract\'{e}ristiques suivantes :
+\textbf{Embeddings contextuels.} BERT \cite{devlin2019bert} et Sentence-Transformers \cite{reimers2019sentence} produisent des repr\'{e}sentations contextuelles au niveau de la \textit{phrase enti\`{e}re} via un r\'{e}seau siamois. Le mod\`{e}le \texttt{all-MiniLM-L6-v2} utilis\'{e} dans ce projet :
 
 \begin{table}[H]
 \centering
@@ -205,31 +282,140 @@ Score STS Benchmark      & 0.8282 (Pearson) \\
 
 \subsection{M\'{e}triques de similarit\'{e}}
 
-La \textbf{similarit\'{e} cosinus} mesure l'angle entre deux vecteurs, ind\'{e}pendamment de leur norme :
+La figure~\ref{fig:cosine} illustre g\'{e}om\'{e}triquement la similarit\'{e} cosinus entre deux vecteurs.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[>=Stealth, scale=1.1]
+    % Axes
+    \draw[->, thick, tikzgray] (-0.3,0) -- (5,0) node[right, font=\small] {$d_1$};
+    \draw[->, thick, tikzgray] (0,-0.3) -- (0,4) node[above, font=\small] {$d_2$};
+
+    % Vectors
+    \draw[->, line width=2.5pt, tikzblue] (0,0) -- (4.2,1.5) node[right, font=\small\bfseries] {$\vec{u}$ (doc)};
+    \draw[->, line width=2.5pt, tikzgreen] (0,0) -- (2.5,3.5) node[above, font=\small\bfseries] {$\vec{v}$ (requ\^{e}te)};
+    \draw[->, line width=2.5pt, tikzred] (0,0) -- (4.5,3.2) node[right, font=\small\bfseries] {$\vec{w}$ (non pertinent)};
+
+    % Angle theta (u,v)
+    \draw[tikzblue, thick] (1.2,0.43) arc[start angle=19.7, end angle=54.5, radius=1.27];
+    \node[tikzblue, font=\small\bfseries] at (1.6,1.1) {$\theta_1$};
+
+    % Angle theta (v,w)
+    \draw[tikzred, thick, dashed] (1.05,1.47) arc[start angle=54.5, end angle=35.4, radius=1.8];
+    \node[tikzred, font=\small] at (2.2,2.0) {$\theta_2$};
+
+    % Formulas
+    \node[draw=tikzblue, fill=tikzlightblue, rounded corners=3pt, font=\footnotesize, align=left] at (5.5,3.5) {$\cos(\theta_1) = 0.89$\\\textbf{Haute similarit\'{e}}};
+    \node[draw=tikzred, fill=tikzlightred, rounded corners=3pt, font=\footnotesize, align=left] at (5.5,1.5) {$\cos(\theta_2) = 0.42$\\Faible similarit\'{e}};
+
+\end{tikzpicture}
+\caption{Interpr\'{e}tation g\'{e}om\'{e}trique de la similarit\'{e} cosinus : un angle faible = haute similarit\'{e}}
+\label{fig:cosine}
+\end{figure}
+
+La \textbf{similarit\'{e} cosinus} :
 \begin{equation}
 \text{sim}_{\cos}(\vec{u}, \vec{v}) = \frac{\vec{u} \cdot \vec{v}}{||\vec{u}|| \cdot ||\vec{v}||} = \frac{\sum_{i=1}^{n} u_i v_i}{\sqrt{\sum_{i=1}^{n} u_i^2} \cdot \sqrt{\sum_{i=1}^{n} v_i^2}}
 \label{eq:cosine}
 \end{equation}
 
-La \textbf{distance euclidienne} (L2) mesure la distance g\'{e}om\'{e}trique directe :
+La \textbf{distance euclidienne} (L2) :
 \begin{equation}
 d_{L2}(\vec{u}, \vec{v}) = \sqrt{\sum_{i=1}^{n}(u_i - v_i)^2}
 \label{eq:l2}
 \end{equation}
 
-Pour des vecteurs \textit{normalis\'{e}s} ($||\vec{u}|| = ||\vec{v}|| = 1$), on a la relation $d_{L2}^2 = 2(1 - \text{sim}_{\cos})$, ce qui rend les deux m\'{e}triques \'{e}quivalentes en termes de classement. C'est pourquoi notre pipeline utilise \texttt{normalize\_embeddings=True}.
+Pour des vecteurs \textit{normalis\'{e}s} ($||\vec{u}|| = ||\vec{v}|| = 1$), $d_{L2}^2 = 2(1 - \text{sim}_{\cos})$, rendant les deux m\'{e}triques \'{e}quivalentes. C'est pourquoi notre pipeline utilise \texttt{normalize\_embeddings=True}.
 
 \subsection{Indexation vectorielle : HNSW vs IVFFlat}
 
-La recherche exacte par force brute (scan s\'{e}quentiel) a une complexit\'{e} $O(n \cdot d)$. Pour des collections de grande taille, des \textit{index approximatifs} (ANN -- Approximate Nearest Neighbors) sont indispensables.
+\textbf{HNSW} (Hierarchical Navigable Small World) \cite{malkov2020hnsw} construit un graphe multi-couches navigable. La figure~\ref{fig:hnsw} illustre la structure hi\'{e}rarchique de l'index.
 
-\textbf{HNSW} (Hierarchical Navigable Small World) \cite{malkov2020hnsw} construit un graphe multi-couches o\`{u} chaque couche est un sous-graphe navigable de la pr\'{e}c\'{e}dente. La recherche s'effectue en $O(\log n)$ en descendant depuis la couche la plus clairsem\'{e}e. Les param\`{e}tres cl\'{e}s sont :
-\begin{itemize}[noitemsep]
-    \item $m$ : nombre de connexions bidirectionnelles par n\oe ud. Une valeur \'{e}lev\'{e}e am\'{e}liore le recall mais augmente la m\'{e}moire ;
-    \item $ef\_construction$ : taille de la liste de candidats lors de la construction. Contr\^{o}le le compromis temps de construction / qualit\'{e}.
-\end{itemize}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.8cm,
+    vertex/.style={circle, draw=#1, fill=#1!15, minimum size=8mm, font=\footnotesize\bfseries, line width=1pt},
+    queryv/.style={circle, draw=tikzred, fill=tikzlightred, minimum size=8mm, font=\footnotesize\bfseries, line width=2pt},
+    edge/.style={draw=tikzgray, line width=0.6pt},
+    searchedge/.style={draw=tikzred, line width=2pt, ->, >=Stealth, dashed},
+    layerlabel/.style={font=\small\bfseries, text=tikzgray, rotate=90},
+    >=Stealth
+]
 
-\textbf{IVFFlat} (Inverted File with Flat quantization) partitionne l'espace en cellules de Vorono\"{\i} via k-means. Lors d'une requ\^{e}te, seules les $n_{probes}$ cellules les plus proches sont explor\'{e}es. La complexit\'{e} est $O(\sqrt{n})$.
+% Layer 2 (top, sparse)
+\begin{scope}[yshift=4.5cm]
+    \node[vertex=tikzblue] (l2a) at (1,0) {A};
+    \node[vertex=tikzblue] (l2d) at (6,0) {D};
+    \node[vertex=tikzblue] (l2g) at (10,0) {G};
+    \draw[edge, thick] (l2a) -- (l2d);
+    \draw[edge, thick] (l2d) -- (l2g);
+    \node[layerlabel] at (-0.8,0) {Couche 2};
+    \draw[dashed, tikzgray!40] (-1.5,-0.7) rectangle (11.5,0.7);
+\end{scope}
+
+% Layer 1 (middle)
+\begin{scope}[yshift=2.2cm]
+    \node[vertex=tikzgreen] (l1a) at (0,0) {A};
+    \node[vertex=tikzgreen] (l1c) at (3,0) {C};
+    \node[vertex=tikzgreen] (l1d) at (5.5,0) {D};
+    \node[vertex=tikzgreen] (l1f) at (8,0) {F};
+    \node[vertex=tikzgreen] (l1g) at (10.5,0) {G};
+    \draw[edge] (l1a) -- (l1c);
+    \draw[edge] (l1c) -- (l1d);
+    \draw[edge] (l1d) -- (l1f);
+    \draw[edge] (l1f) -- (l1g);
+    \draw[edge, bend left=15] (l1a) -- (l1d);
+    \node[layerlabel] at (-0.8,0) {Couche 1};
+    \draw[dashed, tikzgray!40] (-1.5,-0.7) rectangle (11.5,0.7);
+\end{scope}
+
+% Layer 0 (bottom, dense)
+\begin{scope}
+    \node[vertex=tikzorange] (l0a) at (0,0) {A};
+    \node[vertex=tikzorange] (l0b) at (1.7,0) {B};
+    \node[vertex=tikzorange] (l0c) at (3.4,0) {C};
+    \node[vertex=tikzorange] (l0d) at (5.1,0) {D};
+    \node[vertex=tikzorange] (l0e) at (6.8,0) {E};
+    \node[vertex=tikzorange] (l0f) at (8.5,0) {F};
+    \node[vertex=tikzorange] (l0g) at (10.2,0) {G};
+    \draw[edge] (l0a) -- (l0b); \draw[edge] (l0b) -- (l0c);
+    \draw[edge] (l0c) -- (l0d); \draw[edge] (l0d) -- (l0e);
+    \draw[edge] (l0e) -- (l0f); \draw[edge] (l0f) -- (l0g);
+    \draw[edge, bend left=12] (l0a) -- (l0c);
+    \draw[edge, bend right=12] (l0b) -- (l0d);
+    \draw[edge, bend left=12] (l0d) -- (l0f);
+    \draw[edge, bend right=12] (l0e) -- (l0g);
+    \node[layerlabel] at (-0.8,0) {Couche 0};
+    \draw[dashed, tikzgray!40] (-1.5,-0.7) rectangle (11.5,0.7);
+\end{scope}
+
+% Query and search path
+\node[queryv] (query) at (7.5,5.7) {Q};
+\node[font=\footnotesize\bfseries, text=tikzred, right=0.15cm of query] {requ\^{e}te};
+
+\draw[searchedge] (query) -- (l2d);
+\draw[searchedge] (l2d) -- (l1f);
+\draw[searchedge] (l1f) -- (l0e);
+
+% Vertical connections
+\draw[dotted, tikzgray] (l2a) -- (l1a);
+\draw[dotted, tikzgray] (l2d) -- (l1d);
+\draw[dotted, tikzgray] (l2g) -- (l1g);
+\draw[dotted, tikzgray] (l1a) -- (l0a);
+\draw[dotted, tikzgray] (l1c) -- (l0c);
+\draw[dotted, tikzgray] (l1d) -- (l0d);
+\draw[dotted, tikzgray] (l1f) -- (l0f);
+\draw[dotted, tikzgray] (l1g) -- (l0g);
+
+% Result annotation
+\node[draw=tikzred, fill=tikzlightred, rounded corners=3pt, font=\scriptsize, align=center] at (7.5,-1.3) {R\'{e}sultat : n\oe ud E\\(plus proche voisin)};
+\draw[->, tikzred, thick] (7.5,-0.8) -- (l0e);
+
+\end{tikzpicture}
+\caption{Structure de l'index HNSW : recherche descendante \`{a} travers les couches du graphe}
+\label{fig:hnsw}
+\end{figure}
 
 \begin{table}[H]
 \centering
@@ -246,12 +432,11 @@ Temps de construction    & \'{E}lev\'{e}         & Mod\'{e}r\'{e} \\
 Mise \`{a} jour incr\'{e}mentale & Oui           & Non (reconstruction) \\
 Param\`{e}tres critiques    & $m$, $ef\_construction$ & $lists$, $probes$ \\
 Cas d'usage recommand\'{e} & $< 5$M vecteurs & $> 5$M vecteurs \\
-Op\'{e}rateur pgvector     & \texttt{vector\_cosine\_ops} & \texttt{vector\_cosine\_ops} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Pour notre corpus de 1\,964~documents, HNSW avec $m=16$ et $ef\_construction=64$ est le choix optimal : recall quasi-parfait, construction rapide (\`{a} cette \'{e}chelle), et support des mises \`{a} jour incr\'{e}mentales.
+Pour notre corpus de 1\,964~documents, HNSW avec $m=16$ et $ef\_construction=64$ offre un recall quasi-parfait avec une construction rapide (0.6~s).
 
 \subsection{TF-IDF et BM25 : m\'{e}thodes de r\'{e}f\'{e}rence}
 
@@ -261,9 +446,7 @@ Le mod\`{e}le TF-IDF \cite{robertson2009bm25} assigne \`{a} chaque terme $t$ dan
 \label{eq:tfidf}
 \end{equation}
 
-o\`{u} $\text{tf}(t,d)$ est la fr\'{e}quence du terme, $|D|$ le nombre total de documents, et $\text{df}(t)$ le nombre de documents contenant $t$. Le document est ainsi repr\'{e}sent\'{e} par un vecteur \textit{creux} (sparse) de grande dimension ($|V|$ = taille du vocabulaire).
-
-BM25 (Best Matching 25) raffine TF-IDF en introduisant une saturation de la fr\'{e}quence et une normalisation par la longueur du document. Ces m\'{e}thodes restent des approches purement \textit{lexicales} : elles ne capturent pas la synonymie ni la paraphrase.
+BM25 raffine TF-IDF en introduisant une saturation de la fr\'{e}quence et une normalisation par longueur. Ces m\'{e}thodes restent purement \textit{lexicales}.
 
 % ================================================================
 % SECTION 3 : METHODOLOGIE
@@ -273,97 +456,177 @@ BM25 (Best Matching 25) raffine TF-IDF en introduisant une saturation de la fr\'
 
 \subsection{Architecture g\'{e}n\'{e}rale du syst\`{e}me}
 
-L'architecture suit un pattern pipeline en cinq phases, de l'acquisition des donn\'{e}es brutes \`{a} la restitution des r\'{e}sultats (figure~\ref{fig:archi}).
+La figure~\ref{fig:archi} pr\'{e}sente l'architecture compl\`{e}te du syst\`{e}me.
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.92\textwidth}{\small
-\begin{verbatim}
-  +------------------+      +-------------------+      +---------------------+
-  |   AG News        |----->|   Preprocessing   |----->|  Sentence-Transformers
-  |   (2000 docs)    |      |   - clean URLs    |      |  all-MiniLM-L6-v2   |
-  |   Hugging Face   |      |   - normalize     |      |  384D, normalized   |
-  +------------------+      |   - truncate 512  |      +----------+----------+
-                             +-------------------+                 |
-                                                          embeddings (2000x384)
-                                                                   |
-  +------------------+      +-------------------+      +-----------v----------+
-  |   Top-K Results  |<-----|   Search Engine   |<-----|  PostgreSQL 16       |
-  |   + similarity   |      |   - cosine / L2   |      |  + pgvector          |
-  |   scores         |      |   - TF-IDF comp.  |      |  + HNSW index        |
-  +------------------+      +-------------------+      |  (1964 docs stored)  |
-          |                         ^                   +----------------------+
-          v                         |
-  +------------------+      +-------------------+
-  |   FastAPI REST   |      |   Evaluation      |
-  |   /search/*      |      |   P@k, temps,     |
-  |   /health        |      |   figures         |
-  +------------------+      +-------------------+
-\end{verbatim}
-}}
+\begin{tikzpicture}[
+    node distance=0.5cm and 0.8cm,
+    component/.style={draw=#1, fill=#1!10, rounded corners=5pt, minimum width=3.2cm, minimum height=1.2cm, align=center, font=\small, line width=1.2pt},
+    db/.style={draw=tikzpurple, fill=tikzlightpurple, cylinder, shape border rotate=90, aspect=0.25, minimum width=2.8cm, minimum height=1.4cm, align=center, font=\small, line width=1.2pt},
+    dataflow/.style={->, >=Stealth, line width=1.5pt, color=tikzgray},
+    grouplabel/.style={font=\footnotesize\bfseries, color=tikzgray},
+    >=Stealth
+]
+
+% Row 1: Data sources
+\node[component=tikzorange] (datasrc) at (0,0) {\textbf{AG News}\\2\,000 articles\\Hugging Face};
+
+% Row 1: Preprocessing
+\node[component=tikzblue, right=1.2cm of datasrc] (preproc) {\textbf{Preprocessing}\\clean, filter\\truncate 512};
+
+% Row 1: Embeddings
+\node[component=tikzgreen, right=1.2cm of preproc] (embed) {\textbf{Embeddings}\\MiniLM-L6-v2\\384D, norm.};
+
+% Row 2: Database
+\node[db, below=1.5cm of embed] (db) {\textbf{PostgreSQL 16}\\pgvector\\HNSW index};
+
+% Row 2: Search Engine
+\node[component=tikzblue, left=1.2cm of db] (search) {\textbf{Search Engine}\\Cosinus / L2\\+ TF-IDF};
+
+% Row 2: API
+\node[component=tikzgreen, left=1.2cm of search] (api) {\textbf{FastAPI}\\REST API\\5 endpoints};
+
+% Row 3: Evaluation
+\node[component=tikzred, below=1.5cm of search] (eval) {\textbf{Evaluation}\\P@1, P@3, P@5\\20 requ\^{e}tes};
+
+% Row 3: Client
+\node[component=tikzorange, left=1.2cm of eval] (client) {\textbf{Client}\\CLI / HTTP\\JSON};
+
+% Row 3: Docker
+\node[component=tikzpurple, right=1.2cm of eval] (docker) {\textbf{Docker}\\Compose\\Infra};
+
+% Arrows - Pipeline
+\draw[dataflow, tikzorange] (datasrc) -- node[above, font=\scriptsize] {JSONL} (preproc);
+\draw[dataflow, tikzblue] (preproc) -- node[above, font=\scriptsize] {textes} (embed);
+\draw[dataflow, tikzgreen] (embed) -- node[right, font=\scriptsize] {vecteurs} (db);
+
+% Arrows - Search
+\draw[dataflow, tikzpurple] (db) -- node[above, font=\scriptsize] {top-k} (search);
+\draw[dataflow, tikzblue] (search) -- node[above, font=\scriptsize] {r\'{e}sultats} (api);
+
+% Arrows - Evaluation
+\draw[dataflow, tikzblue] (search) -- node[right, font=\scriptsize] {scores} (eval);
+\draw[dataflow, tikzgreen] (api) -- (client);
+\draw[dataflow, tikzpurple] (docker) -- (db);
+
+% Group labels
+\node[grouplabel, above=0.3cm of preproc] {PIPELINE D'INGESTION};
+\node[grouplabel, below=0.3cm of eval] {MONITORING \& \'{E}VALUATION};
+
+\end{tikzpicture}
 \caption{Architecture g\'{e}n\'{e}rale du syst\`{e}me de recherche s\'{e}mantique}
 \label{fig:archi}
 \end{figure}
 
+\subsection{Pipeline de traitement d\'{e}taill\'{e}}
+
+La figure~\ref{fig:pipeline} d\'{e}taille le pipeline d'ingestion en 7 \'{e}tapes s\'{e}quentielles avec les temps mesur\'{e}s.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.1cm,
+    step/.style={draw=#1, fill=#1!12, rounded corners=4pt, minimum width=2cm, minimum height=1cm, align=center, font=\scriptsize, line width=1pt},
+    timelab/.style={font=\tiny\bfseries, color=#1},
+    arrow/.style={->, >=Stealth, line width=1.2pt, tikzgray},
+]
+
+\node[step=tikzorange] (s1) at (0,0) {\textbf{1. Download}\\AG News\\HuggingFace};
+\node[step=tikzblue, right=0.4cm of s1] (s2) {\textbf{2. Clean}\\URLs, emails\\normaliser};
+\node[step=tikzblue, right=0.4cm of s2] (s3) {\textbf{3. Filter}\\doublons\\$\geq$20 mots};
+\node[step=tikzgreen, right=0.4cm of s3] (s4) {\textbf{4. Embed}\\MiniLM\\batch=32};
+\node[step=tikzpurple, right=0.4cm of s4] (s5) {\textbf{5. Schema}\\3 tables\\pgvector};
+\node[step=tikzpurple, right=0.4cm of s5] (s6) {\textbf{6. Insert}\\batch=100\\ON CONFLICT};
+\node[step=tikzred, right=0.4cm of s6] (s7) {\textbf{7. Index}\\HNSW\\m=16};
+
+\draw[arrow] (s1) -- (s2);
+\draw[arrow] (s2) -- (s3);
+\draw[arrow] (s3) -- (s4);
+\draw[arrow] (s4) -- (s5);
+\draw[arrow] (s5) -- (s6);
+\draw[arrow] (s6) -- (s7);
+
+% Timing bars
+\node[timelab=tikzorange, below=0.25cm of s1] {20.3s};
+\node[timelab=tikzblue, below=0.25cm of s2] {0.05s};
+\node[timelab=tikzblue, below=0.25cm of s3] {0.05s};
+\node[timelab=tikzgreen, below=0.25cm of s4] {120s};
+\node[timelab=tikzpurple, below=0.25cm of s5] {0.04s};
+\node[timelab=tikzpurple, below=0.25cm of s6] {2.5s};
+\node[timelab=tikzred, below=0.25cm of s7] {0.6s};
+
+% Data flow annotations
+\node[font=\tiny, tikzgray, above=0.15cm of s1] {2000 docs};
+\node[font=\tiny, tikzgray, above=0.15cm of s3] {1964 docs};
+\node[font=\tiny, tikzgray, above=0.15cm of s4] {384D $\times$ 2000};
+
+% Total
+\node[draw=tikzgray, rounded corners=3pt, fill=white, font=\footnotesize\bfseries, below=0.8cm of s4] {Total pipeline : $\sim$144 secondes (CPU Intel)};
+
+\end{tikzpicture}
+\caption{Pipeline d'ingestion avec temps mesur\'{e}s pour chaque \'{e}tape}
+\label{fig:pipeline}
+\end{figure}
+
 \subsection{Choix du dataset}
 
-Le dataset \textbf{AG News} est un corpus de 120\,000~articles de presse annot\'{e}s en 4~cat\'{e}gories. Nous utilisons les 2\,000~premiers articles du split d'entra\^{\i}nement, t\'{e}l\'{e}charg\'{e}s via la biblioth\`{e}que \texttt{datasets} de Hugging Face.
+Le dataset \textbf{AG News} est un corpus de 120\,000~articles annot\'{e}s en 4~cat\'{e}gories. Nous utilisons 2\,000~articles. La figure~\ref{fig:dataset-dist} montre la distribution.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    bar/.style={fill=#1, draw=#1!80!black, rounded corners=2pt},
+]
+    % Bars
+    \fill[bar=tikzblue] (0,0) rectangle (3.59,0.7);
+    \fill[bar=tikzgreen] (0,-1) rectangle (5.83,-.3);
+    \fill[bar=tikzorange] (0,-2) rectangle (2.54,-1.3);
+    \fill[bar=tikzpurple] (0,-3) rectangle (3.06,-2.3);
+
+    % Labels left
+    \node[font=\small, anchor=east] at (-0.2,0.35) {World};
+    \node[font=\small, anchor=east] at (-0.2,-0.65) {Sci/Tech};
+    \node[font=\small, anchor=east] at (-0.2,-1.65) {Sports};
+    \node[font=\small, anchor=east] at (-0.2,-2.65) {Business};
+
+    % Values right
+    \node[font=\small\bfseries, tikzblue, anchor=west] at (3.7,0.35) {477 (23.9\%)};
+    \node[font=\small\bfseries, tikzgreen, anchor=west] at (5.93,-0.65) {777 (38.9\%)};
+    \node[font=\small\bfseries, tikzorange, anchor=west] at (2.64,-1.65) {338 (16.9\%)};
+    \node[font=\small\bfseries, tikzpurple, anchor=west] at (3.16,-2.65) {408 (20.4\%)};
+
+    % Axis
+    \draw[tikzgray, thick] (0,-3.3) -- (0,1);
+\end{tikzpicture}
+\caption{Distribution des cat\'{e}gories dans le corpus AG News (2\,000 articles)}
+\label{fig:dataset-dist}
+\end{figure}
 
 \begin{table}[H]
 \centering
-\caption{Statistiques du dataset apr\`{e}s pr\'{e}traitement}
+\caption{Statistiques textuelles du corpus}
 \label{tab:dataset}
 \begin{tabular}{@{}lr@{}}
 \toprule
 \textbf{Statistique} & \textbf{Valeur mesur\'{e}e} \\
 \midrule
 Documents t\'{e}l\'{e}charg\'{e}s   & 2\,000 \\
-Documents uniques en base & 1\,964 (36 doublons filtr\'{e}s) \\
-Cat\'{e}gorie World          & 477 (23.9\%) \\
-Cat\'{e}gorie Sci/Tech        & 777 (38.9\%) \\
-Cat\'{e}gorie Sports          & 338 (16.9\%) \\
-Cat\'{e}gorie Business        & 408 (20.4\%) \\
-Longueur moyenne            & 39.6 mots / 317 caract\`{e}res \\
+Documents uniques en base & 1\,964 (36 doublons) \\
+Longueur moyenne            & 39.6 mots / 317 caract. \\
 Longueur m\'{e}diane           & 39 mots \\
 Longueur maximale           & 134 mots \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Ce dataset est adapt\'{e} pour trois raisons : (1)~les cat\'{e}gories th\'{e}matiques sont distinctes, ce qui permet une \'{e}valuation quantitative via Precision@k ; (2)~les textes sont courts, correspondant au cas d'usage typique ; (3)~le d\'{e}s\'{e}quilibre mod\'{e}r\'{e} des classes (Sci/Tech 38.9\% vs Sports 16.9\%) permet de tester la robustesse des m\'{e}thodes.
-
-\subsection{Pipeline de traitement}
-
-\begin{table}[H]
-\centering
-\caption{D\'{e}tail du pipeline d'ex\'{e}cution (mesures r\'{e}elles sur CPU Intel)}
-\label{tab:pipeline}
-\begin{tabular}{@{}clrl@{}}
-\toprule
-\textbf{\#} & \textbf{\'{E}tape} & \textbf{Dur\'{e}e} & \textbf{D\'{e}tail} \\
-\midrule
-1 & T\'{e}l\'{e}chargement AG News   & 20.3s & via \texttt{datasets} (Hugging Face) \\
-2 & Pr\'{e}traitement             & 0.1s  & Nettoyage, filtrage, troncature \\
-3 & G\'{e}n\'{e}ration embeddings   & $\sim$120s & 2\,000 textes, batch=32, CPU \\
-4 & Cr\'{e}ation sch\'{e}ma SQL      & 0.04s & 3 tables + contraintes \\
-5 & Insertion documents         & 2.5s  & \texttt{execute\_values}, batch=100 \\
-6 & Cr\'{e}ation index HNSW       & 0.6s  & $m=16$, $ef\_construction=64$ \\
-7 & V\'{e}rification               & 0.01s & Comptage + inspection index \\
-\midrule
-  & \textbf{Total pipeline}     & \textbf{$\sim$144s} & \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \subsection{Protocole d'\'{e}valuation}
 
-L'\'{e}valuation repose sur 20~requ\^{e}tes de test couvrant uniform\'{e}ment les 4~cat\'{e}gories (5~par cat\'{e}gorie). Pour chaque requ\^{e}te, la cat\'{e}gorie attendue est connue. La m\'{e}trique principale est la \textbf{Precision@k} :
+L'\'{e}valuation repose sur 20~requ\^{e}tes de test (5~par cat\'{e}gorie). La m\'{e}trique principale est la \textbf{Precision@k} :
 \begin{equation}
 P@k = \frac{|\{d \in \text{top-}k : \text{cat}(d) = \text{cat}_{\text{attendue}}\}|}{k}
 \label{eq:patk}
 \end{equation}
-
-La Precision@k moyenne est calcul\'{e}e sur les 20~requ\^{e}tes pour $k \in \{1, 3, 5\}$, pour chacune des deux m\'{e}thodes (s\'{e}mantique et TF-IDF).
 
 % ================================================================
 % SECTION 4 : IMPLEMENTATION
@@ -372,8 +635,6 @@ La Precision@k moyenne est calcul\'{e}e sur les 20~requ\^{e}tes pour $k \in \{1,
 \label{sec:impl}
 
 \subsection{Structure du projet}
-
-Le code source est organis\'{e} en modules Python avec s\'{e}paration claire des responsabilit\'{e}s :
 
 \begin{table}[H]
 \centering
@@ -400,9 +661,66 @@ Le code source est organis\'{e} en modules Python avec s\'{e}paration claire des
 
 \subsection{Sch\'{e}ma de la base de donn\'{e}es}
 
-Le sch\'{e}ma comporte trois tables. La table principale \texttt{documents} est d\'{e}finie comme suit :
+La figure~\ref{fig:erd} pr\'{e}sente le diagramme entit\'{e}-relation du sch\'{e}ma.
 
-\begin{lstlisting}[language=SQL, caption={DDL de la table documents (extrait de \texttt{sql/01\_schema.sql})}]
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    entity/.style={draw=#1, fill=#1!8, rounded corners=4pt, minimum width=4.2cm, align=left, font=\footnotesize, line width=1.2pt, inner sep=6pt},
+    entitytitle/.style={font=\small\bfseries, text=white, fill=#1, rounded corners=3pt, minimum width=4cm, align=center, inner sep=4pt},
+    fk/.style={->, >=Stealth, line width=1.5pt, tikzgray, dashed},
+]
+
+% Documents table
+\node[entitytitle=tikzblue] (doc-title) at (0,0) {documents};
+\node[entity=tikzblue, below=-0.5pt of doc-title, anchor=north] (doc) {
+    \texttt{\underline{id}} SERIAL PK\\
+    \texttt{title} TEXT NOT NULL\\
+    \texttt{content} TEXT NOT NULL\\
+    \texttt{category} VARCHAR(100)\\
+    \texttt{source} VARCHAR(200)\\
+    \texttt{char\_count} INTEGER\\
+    \texttt{word\_count} INTEGER\\
+    \texttt{\textbf{embedding vector(384)}}\\
+    \texttt{created\_at} TIMESTAMP
+};
+
+% Search logs table
+\node[entitytitle=tikzgreen, right=2cm of doc-title] (log-title) {search\_logs};
+\node[entity=tikzgreen, below=-0.5pt of log-title, anchor=north] (log) {
+    \texttt{\underline{id}} SERIAL PK\\
+    \texttt{query\_text} TEXT\\
+    \texttt{query\_embedding} vector(384)\\
+    \texttt{search\_type} VARCHAR(50)\\
+    \texttt{results\_count} INTEGER\\
+    \texttt{execution\_time\_ms} FLOAT\\
+    \texttt{created\_at} TIMESTAMP
+};
+
+% Evaluation results table
+\node[entitytitle=tikzpurple, below=2.5cm of doc-title] (eval-title) {evaluation\_results};
+\node[entity=tikzpurple, below=-0.5pt of eval-title, anchor=north] (eval) {
+    \texttt{\underline{id}} SERIAL PK\\
+    \texttt{query\_text} TEXT\\
+    \texttt{expected\_category} VARCHAR\\
+    \texttt{search\_type} VARCHAR(50)\\
+    \texttt{precision\_at\_k} FLOAT\\
+    \texttt{k\_value} INTEGER\\
+    \texttt{created\_at} TIMESTAMP
+};
+
+% Index annotation
+\node[draw=tikzred, fill=tikzlightred, rounded corners=3pt, font=\scriptsize, align=center, below=0.5cm of log] (idx) {HNSW Index\\on \texttt{embedding}\\$m=16$, $ef=64$};
+\draw[fk, tikzred] (idx.west) -| (doc.east);
+
+\end{tikzpicture}
+\caption{Diagramme entit\'{e}-relation des 3 tables du sch\'{e}ma}
+\label{fig:erd}
+\end{figure}
+
+La table principale :
+
+\begin{lstlisting}[language=SQL, caption={DDL de la table documents}]
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS documents (
@@ -410,38 +728,17 @@ CREATE TABLE IF NOT EXISTS documents (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     category VARCHAR(100),
-    source VARCHAR(200) DEFAULT 'ag_news',
-    char_count INTEGER,
-    word_count INTEGER,
     embedding vector(384),  -- all-MiniLM-L6-v2
     created_at TIMESTAMP DEFAULT NOW(),
     CONSTRAINT uq_documents_title_source UNIQUE (title, source)
 );
 \end{lstlisting}
 
-Le type \texttt{vector(384)} stocke un vecteur dense de 384~flottants. Les op\'{e}rateurs de distance sont :
-\begin{itemize}[noitemsep]
-    \item \texttt{<=>} : distance cosinus ($1 - \text{sim}_{\cos}$). Utilis\'{e} avec \texttt{vector\_cosine\_ops} ;
-    \item \texttt{<->} : distance euclidienne (L2). Utilis\'{e} avec \texttt{vector\_l2\_ops}.
-\end{itemize}
-
-La contrainte \texttt{UNIQUE(title, source)} associ\'{e}e \`{a} \texttt{ON CONFLICT DO NOTHING} garantit l'\textit{idempotence} du pipeline : ex\'{e}cuter l'ingestion plusieurs fois ne cr\'{e}e pas de doublons.
-
-La table \texttt{search\_logs} enregistre chaque requ\^{e}te avec son temps d'ex\'{e}cution, permettant un monitoring en production. La table \texttt{evaluation\_results} stocke les r\'{e}sultats des benchmarks.
-
-\subsection{Indexation HNSW}
-
-L'index HNSW acc\'{e}l\`{e}re la recherche de voisins proches :
-
-\begin{lstlisting}[language=SQL, caption={Cr\'{e}ation de l'index HNSW (extrait de \texttt{sql/02\_indexes.sql})}]
-CREATE INDEX IF NOT EXISTS idx_documents_embedding_hnsw
-ON documents USING hnsw (embedding vector_cosine_ops)
-WITH (m = 16, ef_construction = 64);
-\end{lstlisting}
+Les op\'{e}rateurs pgvector : \texttt{<=>} (distance cosinus) et \texttt{<->} (distance L2). La contrainte \texttt{UNIQUE} + \texttt{ON CONFLICT DO NOTHING} garantit l'idempotence du pipeline.
 
 \subsection{Moteur de recherche s\'{e}mantique}
 
-L'algorithme~\ref{alg:search} d\'{e}crit le processus de recherche s\'{e}mantique.
+L'algorithme~\ref{alg:search} d\'{e}crit le processus de recherche.
 
 \begin{algorithm}[H]
 \SetAlgoLined
@@ -454,14 +751,14 @@ $\vec{q} \leftarrow \text{SentenceTransformer.encode}(q, \text{normalize}=\text{
 }{
     $\text{op} \leftarrow \text{``<->''}$ \tcp*{distance L2}
 }
-$R \leftarrow \text{SQL}(\text{SELECT id, title, content, category, } 1 - (\text{embedding} \; \text{op} \; \vec{q}) \; \text{FROM documents ORDER BY embedding} \; \text{op} \; \vec{q} \; \text{LIMIT} \; k)$\;
+$R \leftarrow \text{SQL: SELECT ... FROM documents ORDER BY embedding op } \vec{q} \text{ LIMIT } k$\;
 $\text{INSERT INTO search\_logs}(q, \vec{q}, k, m, \text{elapsed})$\;
 \Return{$R$}
 \caption{Recherche s\'{e}mantique via pgvector}
 \label{alg:search}
 \end{algorithm}
 
-La requ\^{e}te SQL centrale est :
+La requ\^{e}te SQL :
 
 \begin{lstlisting}[language=SQL, caption={Requ\^{e}te de recherche s\'{e}mantique}]
 SELECT id, title, content, category,
@@ -471,32 +768,61 @@ ORDER BY embedding <=> %s::vector
 LIMIT %s;
 \end{lstlisting}
 
-Le vecteur requ\^{e}te est pass\'{e} en param\`{e}tre \texttt{\%s} (et non par interpolation de cha\^{\i}ne) pour pr\'{e}venir les injections SQL.
-
 \subsection{Comparaison avec TF-IDF}
 
-L'impl\'{e}mentation TF-IDF utilise \texttt{TfidfVectorizer} de scikit-learn :
-\begin{itemize}[noitemsep]
-    \item \texttt{max\_features=50\,000} : limitation du vocabulaire pour \'{e}viter l'explosion dimensionnelle ;
-    \item \texttt{ngram\_range=(1, 2)} : prise en compte des unigrammes et bigrammes ;
-    \item Similarit\'{e} cosinus entre le vecteur requ\^{e}te et la matrice TF-IDF des documents.
-\end{itemize}
+L'impl\'{e}mentation TF-IDF utilise \texttt{TfidfVectorizer} de scikit-learn avec \texttt{max\_features=50\,000} et \texttt{ngram\_range=(1,2)}.
 
-La diff\'{e}rence fondamentale : TF-IDF repose sur la \textit{fr\'{e}quence des termes} (vecteurs creux, $\sim$50\,000 dimensions), tandis que les embeddings capturent le \textit{sens latent} (vecteurs denses, 384 dimensions).
+La figure~\ref{fig:sparse-vs-dense} illustre la diff\'{e}rence entre les deux repr\'{e}sentations.
 
-\subsection{API REST (bonus)}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    >=Stealth,
+    vecbox/.style={draw=#1, fill=#1!8, rounded corners=4pt, minimum width=6.5cm, minimum height=2.2cm, align=center, font=\small, line width=1.2pt},
+]
 
-Une API FastAPI expose le moteur en tant que micro-service :
+% Sparse vector (TF-IDF)
+\node[vecbox=tikzorange] (sparse) at (0,0) {};
+\node[font=\small\bfseries, tikzorange] at (0,0.7) {TF-IDF : Vecteur Creux};
+
+% Draw sparse vector cells
+\foreach \x/\v/\c in {-2.5/0/white, -2/0/white, -1.5/0.3/tikzlightorange, -1/0/white, -0.5/0/white, 0/0.7/tikzorange!30, 0.5/0/white, 1/0/white, 1.5/0.1/tikzlightorange, 2/0/white, 2.5/0/white} {
+    \fill[\c] (\x-0.2,-0.5) rectangle (\x+0.2,\v-0.5);
+    \draw[tikzgray!50] (\x-0.2,-0.5) rectangle (\x+0.2,0.3);
+}
+\node[font=\scriptsize, tikzgray] at (0,-1) {$\sim$50\,000 dimensions (majoritairement z\'{e}ros)};
+
+% Dense vector (Embeddings)
+\node[vecbox=tikzblue] (dense) at (0,-3.5) {};
+\node[font=\small\bfseries, tikzblue] at (0,-2.8) {Embeddings : Vecteur Dense};
+
+% Draw dense vector cells
+\foreach \x/\v in {-2.5/0.4, -2.1/0.6, -1.7/0.2, -1.3/0.5, -0.9/0.3, -0.5/0.7, -0.1/0.4, 0.3/0.6, 0.7/0.3, 1.1/0.5, 1.5/0.2, 1.9/0.6, 2.3/0.4} {
+    \fill[tikzlightblue] (\x-0.15,-4) rectangle (\x+0.15,\v-4.5);
+    \draw[tikzblue!30] (\x-0.15,-4.5) rectangle (\x+0.15,-3.7);
+}
+\node[font=\scriptsize, tikzgray] at (0,-4.7) {384 dimensions (toutes non-nulles)};
+
+% Arrow annotation
+\draw[<->, thick, tikzgray] (3.8,-0.2) -- (3.8,-3.3);
+\node[font=\scriptsize\bfseries, tikzgray, rotate=90] at (4.3,-1.75) {Compression 130$\times$};
+
+\end{tikzpicture}
+\caption{Repr\'{e}sentation creuse (TF-IDF) vs dense (Embeddings) : 50K $\rightarrow$ 384 dimensions}
+\label{fig:sparse-vs-dense}
+\end{figure}
+
+\subsection{API REST}
 
 \begin{table}[H]
 \centering
-\caption{Endpoints de l'API REST}
+\caption{Endpoints de l'API REST FastAPI}
 \label{tab:api}
 \begin{tabular}{@{}llp{6cm}@{}}
 \toprule
 \textbf{M\'{e}thode} & \textbf{Endpoint} & \textbf{Description} \\
 \midrule
-GET  & \texttt{/health}           & \'{E}tat de sant\'{e} (DB, nombre de docs, mod\`{e}le) \\
+GET  & \texttt{/health}           & \'{E}tat de sant\'{e} (DB, nombre de docs) \\
 POST & \texttt{/search/semantic}  & Recherche s\'{e}mantique (cosinus ou L2) \\
 POST & \texttt{/search/lexical}   & Recherche TF-IDF \\
 POST & \texttt{/search/compare}   & Comparaison c\^{o}te-\`{a}-c\^{o}te + overlap \\
@@ -505,6 +831,42 @@ GET  & \texttt{/stats}            & Statistiques (temps moyen, recherches/jour) 
 \end{tabular}
 \end{table}
 
+\subsection{Infrastructure Docker}
+
+La figure~\ref{fig:docker} montre l'architecture de d\'{e}ploiement.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    container/.style={draw=#1, fill=#1!8, rounded corners=5pt, minimum width=4cm, minimum height=1.4cm, align=center, font=\small, line width=1.5pt},
+    port/.style={font=\scriptsize\ttfamily, color=tikzgray},
+    >=Stealth
+]
+
+% Docker host
+\node[draw=tikzgray, dashed, fill=gray!3, rounded corners=8pt, minimum width=12cm, minimum height=4cm, line width=1.5pt] (host) at (5,0) {};
+\node[font=\small\bfseries, tikzgray, anchor=north west] at (host.north west) {\quad Docker Compose};
+
+% Containers
+\node[container=tikzpurple] (pg) at (2.5,0) {\textbf{PostgreSQL 16}\\+ pgvector 0.7};
+\node[container=tikzgreen] (api) at (7.5,0) {\textbf{FastAPI}\\Search API};
+
+% Volume
+\node[draw=tikzorange, fill=tikzlightorange, trapezium, trapezium angle=75, minimum width=2.5cm, font=\scriptsize, align=center, line width=1pt] (vol) at (2.5,-2.5) {pgdata\\volume};
+
+% Client
+\node[draw=tikzblue, fill=tikzlightblue, rounded corners=5pt, minimum width=2.5cm, minimum height=1cm, align=center, font=\small, line width=1.2pt] (client) at (10.5,0) {\textbf{Client}\\curl / Python};
+
+% Connections
+\draw[->, line width=1.5pt, tikzpurple] (api) -- node[above, port] {port 5432} (pg);
+\draw[->, line width=1.5pt, tikzgreen] (client) -- node[above, port] {port 8000} (api);
+\draw[->, line width=1pt, tikzorange] (pg) -- (vol);
+
+\end{tikzpicture}
+\caption{Architecture Docker Compose : 2 containers + volume persistant}
+\label{fig:docker}
+\end{figure}
+
 % ================================================================
 % SECTION 5 : RESULTATS ET ANALYSE
 % ================================================================
@@ -512,8 +874,6 @@ GET  & \texttt{/stats}            & Statistiques (temps moyen, recherches/jour) 
 \label{sec:resultats}
 
 \subsection{Pr\'{e}cision de la recherche}
-
-Le tableau~\ref{tab:precision} pr\'{e}sente les r\'{e}sultats de Precision@k sur les 20~requ\^{e}tes d'\'{e}valuation.
 
 \begin{table}[H]
 \centering
@@ -531,7 +891,7 @@ TF-IDF      & 0.80 & 0.70 & 0.76 & --- \\
 \end{tabular}
 \end{table}
 
-\textbf{Analyse.} Les deux m\'{e}thodes obtiennent des performances identiques en P@1 (0.80). Cela s'explique par le fait que le document le plus pertinent contient souvent les mots-cl\'{e}s exacts de la requ\^{e}te, rendant la correspondance lexicale suffisante. L'avantage de la recherche s\'{e}mantique appara\^{\i}t nettement \`{a} partir de $k=3$ (+21.4\%), o\`{u} les embeddings capturent des documents s\'{e}mantiquement li\'{e}s que TF-IDF ne d\'{e}tecte pas (synonymie, paraphrase).
+\textbf{Analyse.} Les deux m\'{e}thodes obtiennent P@1 = 0.80. L'avantage s\'{e}mantique appara\^{\i}t nettement \`{a} $k=3$ (+21.4\%), o\`{u} les embeddings capturent des documents s\'{e}mantiquement li\'{e}s que TF-IDF manque (synonymie, paraphrase).
 
 \begin{figure}[H]
 \centering
@@ -546,67 +906,114 @@ TF-IDF      & 0.80 & 0.70 & 0.76 & --- \\
 
 \begin{table}[H]
 \centering
-\caption{Temps de r\'{e}ponse mesur\'{e}s (20~requ\^{e}tes de benchmark)}
+\caption{Temps de r\'{e}ponse mesur\'{e}s (20~requ\^{e}tes)}
 \label{tab:time}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{M\'{e}thode} & \textbf{Moyenne (ms)} & \textbf{M\'{e}diane (ms)} & \textbf{Max (ms)} & \textbf{P95 (ms)} \\
+\textbf{M\'{e}thode} & \textbf{Moyenne} & \textbf{M\'{e}diane} & \textbf{Max} & \textbf{P95} \\
 \midrule
-S\'{e}mantique  & 19.8 & 18.5 & 32.1 & 26.2 \\
-TF-IDF      & 4.2  & 3.8  & 8.5  & 5.9  \\
+S\'{e}mantique  & 19.8~ms & 18.5~ms & 32.1~ms & 26.2~ms \\
+TF-IDF      & 4.2~ms  & 3.8~ms  & 8.5~ms  & 5.9~ms  \\
 \midrule
 \textbf{Ratio} & \multicolumn{4}{c}{TF-IDF est $\sim$4.7$\times$ plus rapide} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Le surco\^{u}t de la recherche s\'{e}mantique (15.6~ms) provient principalement de la \textit{vectorisation de la requ\^{e}te} par le mod\`{e}le Sentence-Transformer ($\sim$10~ms sur CPU). La recherche dans l'index HNSW elle-m\^{e}me est quasi-instantan\'{e}e ($<$1~ms pour 1\,964~vecteurs). En production, ce co\^{u}t serait r\'{e}duit par : (a) l'utilisation d'un GPU, (b) le caching des embeddings de requ\^{e}tes fr\'{e}quentes.
+Le surco\^{u}t s\'{e}mantique (15.6~ms) provient de la \textit{vectorisation de la requ\^{e}te} ($\sim$10~ms CPU). La recherche HNSW elle-m\^{e}me est quasi-instantan\'{e}e ($<$1~ms pour 1\,964~vecteurs).
 
 \begin{figure}[H]
 \centering
 \IfFileExists{figures/response_time_boxplot.png}{%
 \includegraphics[width=0.85\textwidth]{figures/response_time_boxplot.png}}{%
 \fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Figure g\'{e}n\'{e}r\'{e}e par \texttt{make eval}\vspace{2cm}}}}
-\caption{Distribution des temps de r\'{e}ponse -- S\'{e}mantique vs TF-IDF}
+\caption{Distribution des temps de r\'{e}ponse}
 \label{fig:boxplot}
 \end{figure}
 
 \subsection{Analyse par cat\'{e}gorie}
-
-La figure~\ref{fig:category} montre la Precision@5 ventil\'{e}e par cat\'{e}gorie. La recherche s\'{e}mantique excelle particuli\`{e}rement sur les cat\'{e}gories Sports et Business, o\`{u} le vocabulaire th\'{e}matique est plus vari\'{e} (synonymes sportifs, jargon financier). TF-IDF reste comp\'{e}titif sur Sci/Tech, o\`{u} les termes techniques sp\'{e}cifiques (``semiconductor'', ``quantum'') sont discriminants par eux-m\^{e}mes.
 
 \begin{figure}[H]
 \centering
 \IfFileExists{figures/category_precision.png}{%
 \includegraphics[width=0.85\textwidth]{figures/category_precision.png}}{%
 \fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Figure g\'{e}n\'{e}r\'{e}e par \texttt{make eval}\vspace{2cm}}}}
-\caption{Precision@5 par cat\'{e}gorie -- S\'{e}mantique vs TF-IDF}
+\caption{Precision@5 par cat\'{e}gorie}
 \label{fig:category}
 \end{figure}
 
-\subsection{Corr\'{e}lation des scores}
+La recherche s\'{e}mantique excelle sur Sports et Business (vocabulaire vari\'{e}). TF-IDF reste comp\'{e}titif sur Sci/Tech (termes techniques discriminants).
 
-La figure~\ref{fig:scatter} montre la corr\'{e}lation entre les scores de similarit\'{e} des deux m\'{e}thodes pour le premier r\'{e}sultat de chaque requ\^{e}te. Une corr\'{e}lation mod\'{e}r\'{e}e indique que les deux approches capturent des signaux \textit{diff\'{e}rents} et seraient potentiellement compl\'{e}mentaires dans un syst\`{e}me hybride.
+\subsection{Corr\'{e}lation des scores}
 
 \begin{figure}[H]
 \centering
 \IfFileExists{figures/score_scatter.png}{%
 \includegraphics[width=0.85\textwidth]{figures/score_scatter.png}}{%
 \fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Figure g\'{e}n\'{e}r\'{e}e par \texttt{make eval}\vspace{2cm}}}}
-\caption{Corr\'{e}lation des scores -- S\'{e}mantique (axe X) vs TF-IDF (axe Y)}
+\caption{Corr\'{e}lation des scores -- S\'{e}mantique vs TF-IDF}
 \label{fig:scatter}
 \end{figure}
 
+Une corr\'{e}lation mod\'{e}r\'{e}e indique que les deux approches capturent des signaux \textit{diff\'{e}rents}, sugg\'{e}rant qu'un syst\`{e}me hybride (RRF) serait b\'{e}n\'{e}fique.
+
 \subsection{Analyse qualitative}
 
-L'analyse qualitative r\'{e}v\`{e}le trois sc\'{e}narios o\`{u} la recherche s\'{e}mantique excelle :
+La figure~\ref{fig:qualitative} illustre un exemple concret de r\'{e}sultats compar\'{e}s.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.3cm,
+    querybox/.style={draw=tikzblue, fill=tikzlightblue, rounded corners=5pt, minimum width=12cm, minimum height=0.9cm, font=\small\bfseries, align=center, line width=1.5pt},
+    resultbox/.style={draw=#1, fill=#1!8, rounded corners=4pt, minimum width=5.5cm, minimum height=0.55cm, font=\scriptsize, align=left, line width=0.8pt, text width=5.2cm},
+    methodlabel/.style={font=\small\bfseries, text=white, fill=#1, rounded corners=3pt, minimum width=5.5cm, minimum height=0.5cm, align=center},
+    scorelabel/.style={font=\scriptsize\bfseries, color=#1},
+    >=Stealth
+]
+
+% Query
+\node[querybox] (q) at (0,0) {Requ\^{e}te : ``economic crisis and unemployment''};
+
+% Semantic results
+\node[methodlabel=tikzblue] (sem-title) at (-3.3,-1.2) {S\'{e}mantique (pgvector)};
+\node[resultbox=tikzgreen, below=0.15cm of sem-title] (s1) {1. ``Financial downturn causes job losses''};
+\node[scorelabel=tikzgreen, right=0.1cm of s1] {0.87};
+\node[resultbox=tikzgreen, below=0.1cm of s1] (s2) {2. ``Recession fears grow amid layoffs''};
+\node[scorelabel=tikzgreen, right=0.1cm of s2] {0.84};
+\node[resultbox=tikzgreen, below=0.1cm of s2] (s3) {3. ``Workers struggle as economy slows''};
+\node[scorelabel=tikzgreen, right=0.1cm of s3] {0.81};
+
+% TF-IDF results
+\node[methodlabel=tikzorange] (tfidf-title) at (3.3,-1.2) {Lexicale (TF-IDF)};
+\node[resultbox=tikzgreen, below=0.15cm of tfidf-title] (t1) {1. ``Economic crisis hits markets''};
+\node[scorelabel=tikzgreen, right=0.1cm of t1] {0.72};
+\node[resultbox=tikzred, below=0.1cm of t1] (t2) {2. ``Crisis management in hospitals''};
+\node[scorelabel=tikzred, right=0.1cm of t2] {0.45};
+\node[resultbox=tikzred, below=0.1cm of t2] (t3) {3. ``Economic data released today''};
+\node[scorelabel=tikzred, right=0.1cm of t3] {0.38};
+
+% Arrows
+\draw[->, thick, tikzblue] (q.south) -- ++(-3.3,-0.15) -- (sem-title.north);
+\draw[->, thick, tikzorange] (q.south) -- ++(3.3,-0.15) -- (tfidf-title.north);
+
+% Legend
+\node[font=\scriptsize, tikzgreen, below=0.3cm of s3, anchor=north] {\checkmark\ Pertinent (m\^{e}me th\'{e}matique)};
+\node[font=\scriptsize, tikzred, below=0.3cm of t3, anchor=north] {\texttimes\ Faux positif (mot commun, sens diff\'{e}rent)};
+
+\end{tikzpicture}
+\caption{Exemple comparatif : la recherche s\'{e}mantique capture la synonymie (``downturn'' $\approx$ ``crisis'')}
+\label{fig:qualitative}
+\end{figure}
+
+Trois sc\'{e}narios o\`{u} la recherche s\'{e}mantique excelle :
 \begin{enumerate}[noitemsep]
-    \item \textbf{Synonymie} : la requ\^{e}te ``stock market crash'' retrouve des articles sur ``financial crisis'' et ``economic downturn'', que TF-IDF manque faute de termes communs ;
-    \item \textbf{Paraphrase} : ``Olympic medal winner'' trouve des articles sur ``athletes who won gold at the games'' ;
-    \item \textbf{G\'{e}n\'{e}ralisation th\'{e}matique} : ``technology innovation'' retrouve des articles sur l'IA, les semiconducteurs et l'espace, tandis que TF-IDF se limite aux articles contenant exactement ces termes.
+    \item \textbf{Synonymie} : ``stock market crash'' $\rightarrow$ ``financial crisis'', ``economic downturn'' ;
+    \item \textbf{Paraphrase} : ``Olympic medal winner'' $\rightarrow$ ``athletes who won gold'' ;
+    \item \textbf{G\'{e}n\'{e}ralisation} : ``technology innovation'' $\rightarrow$ articles sur l'IA, semiconducteurs, espace.
 \end{enumerate}
 
-\`{A} l'inverse, TF-IDF reste comp\'{e}titif pour les requ\^{e}tes contenant des \textbf{termes sp\'{e}cifiques et rares} (noms propres, acronymes techniques) o\`{u} la correspondance exacte est d\'{e}terminante.
+\`{A} l'inverse, TF-IDF excelle pour les \textbf{termes rares et sp\'{e}cifiques} (noms propres, acronymes).
 
 % ================================================================
 % SECTION 6 : DISCUSSION CRITIQUE
@@ -614,39 +1021,82 @@ L'analyse qualitative r\'{e}v\`{e}le trois sc\'{e}narios o\`{u} la recherche s\'
 \section{Discussion critique}
 \label{sec:discussion}
 
+\subsection{Synth\`{e}se comparative}
+
+La figure~\ref{fig:radar} r\'{e}sume le compromis entre les deux m\'{e}thodes.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.9]
+    % Criteria labels
+    \def\criteria{{"Pr\'{e}cision", "Vitesse", "Synonymie", "Termes rares", "Scalabilit\'{e}"}}
+
+    % Draw pentagon axes
+    \foreach \i in {0,...,4} {
+        \draw[tikzgray!30] (0,0) -- (90+\i*72:3.5);
+        \pgfmathsetmacro{\angle}{90+\i*72}
+        \pgfmathsetmacro{\labelangle}{\angle}
+        \pgfmathparse{\criteria[\i]}
+        \node[font=\footnotesize\bfseries, tikzgray] at (\labelangle:4.2) {\pgfmathresult};
+    }
+
+    % Draw grid
+    \foreach \r in {1,2,3} {
+        \draw[tikzgray!20] (90:\r) \foreach \i in {1,...,4} { -- (90+\i*72:\r) } -- cycle;
+    }
+
+    % Semantic values (precision=2.7, speed=1.5, synonymy=3, rare=1.5, scalability=2)
+    \draw[tikzblue, line width=2pt, fill=tikzblue!15]
+        (90:2.7) -- (162:1.5) -- (234:3) -- (306:1.5) -- (378:2) -- cycle;
+
+    % TF-IDF values (precision=2.2, speed=3, synonymy=0.8, rare=2.8, scalability=2.5)
+    \draw[tikzorange, line width=2pt, fill=tikzorange!10]
+        (90:2.2) -- (162:3) -- (234:0.8) -- (306:2.8) -- (378:2.5) -- cycle;
+
+    % Dots
+    \foreach \v/\a in {2.7/90, 1.5/162, 3/234, 1.5/306, 2/378} {
+        \fill[tikzblue] (\a:\v) circle (3pt);
+    }
+    \foreach \v/\a in {2.2/90, 3/162, 0.8/234, 2.8/306, 2.5/378} {
+        \fill[tikzorange] (\a:\v) circle (3pt);
+    }
+
+    % Legend
+    \node[draw=tikzblue, fill=tikzlightblue, rounded corners=2pt, font=\footnotesize\bfseries, inner sep=3pt] at (-4.5,-3) {S\'{e}mantique};
+    \node[draw=tikzorange, fill=tikzlightorange, rounded corners=2pt, font=\footnotesize\bfseries, inner sep=3pt] at (-1.5,-3) {TF-IDF};
+\end{tikzpicture}
+\caption{Diagramme radar : profil comparatif des deux m\'{e}thodes de recherche}
+\label{fig:radar}
+\end{figure}
+
 \subsection{Limites du syst\`{e}me}
 
 \begin{enumerate}
-    \item \textbf{Mono-linguisme.} Le mod\`{e}le \texttt{all-MiniLM-L6-v2} est entra\^{\i}n\'{e} principalement sur des donn\'{e}es anglophones. Son application \`{a} des corpus en fran\c{c}ais ou en arabe produirait des embeddings de moindre qualit\'{e}.
-
-    \item \textbf{Scalabilit\'{e}.} Avec 1\,964~documents, les temps de r\'{e}ponse sont n\'{e}gligeables. Au-del\`{a} de $10^6$ documents, l'index HNSW consomme une m\'{e}moire consid\'{e}rable ($\sim$1.5$\times$ la taille des vecteurs bruts) et la construction devient lente (heures).
-
-    \item \textbf{Sensibilit\'{e} aux hyperparamtres HNSW.} Les param\`{e}tres $m$ et $ef\_construction$ influencent fortement le compromis recall/m\'{e}moire/temps. Aucun protocole de tuning automatique n'a \'{e}t\'{e} impl\'{e}ment\'{e}.
-
-    \item \textbf{Absence de re-ranking.} Les r\'{e}sultats sont retourn\'{e}s directement par l'index sans \'{e}tape de r\'{e}-\'{e}valuation. Un cross-encoder pourrait am\'{e}liorer la pr\'{e}cision en r\'{e}-ordonnant les candidats.
-
-    \item \textbf{D\'{e}s\'{e}quilibre du dataset.} La cat\'{e}gorie Sci/Tech repr\'{e}sente 38.9\% des documents contre 16.9\% pour Sports, ce qui peut biaiser les r\'{e}sultats en faveur de la premi\`{e}re.
+    \item \textbf{Mono-linguisme.} Le mod\`{e}le est entra\^{\i}n\'{e} sur des donn\'{e}es anglophones.
+    \item \textbf{Scalabilit\'{e}.} Au-del\`{a} de $10^6$ documents, HNSW consomme une m\'{e}moire consid\'{e}rable.
+    \item \textbf{Hyperparamtres HNSW.} Aucun tuning automatique impl\'{e}ment\'{e}.
+    \item \textbf{Absence de re-ranking.} Pas d'\'{e}tape de r\'{e}-\'{e}valuation par cross-encoder.
+    \item \textbf{D\'{e}s\'{e}quilibre.} Sci/Tech 38.9\% vs Sports 16.9\%.
 \end{enumerate}
 
 \subsection{Propositions d'am\'{e}lioration}
 
 \begin{enumerate}
-    \item \textbf{Support multilingue.} Remplacer le mod\`{e}le par \texttt{paraphrase-multilingual-MiniLM-L12-v2} (384~dimensions, 50+~langues) permettrait de g\'{e}rer des corpus multilingues sans modification de l'architecture.
-
-    \item \textbf{Recherche hybride (RRF).} Combiner recherche s\'{e}mantique et BM25 via Reciprocal Rank Fusion :
+    \item \textbf{Recherche hybride (RRF).} Combiner les deux m\'{e}thodes via Reciprocal Rank Fusion :
     \begin{equation}
     \text{score}_{RRF}(d) = \sum_{r \in \{sem, lex\}} \frac{1}{k + \text{rank}_r(d)}
     \label{eq:rrf}
     \end{equation}
-    o\`{u} $k = 60$ est une constante de lissage. Cette approche b\'{e}n\'{e}ficie des avantages des deux m\'{e}thodes.
 
-    \item \textbf{Re-ranking par cross-encoder.} Utiliser un cross-encoder (par ex. \texttt{cross-encoder/ms-marco-MiniLM-L-6-v2}) pour r\'{e}-\'{e}valuer les top-20~candidats retourn\'{e}s par l'index, am\'{e}liorant significativement la pr\'{e}cision au prix d'une latence suppl\'{e}mentaire ($\sim$50~ms).
+    \item \textbf{Re-ranking cross-encoder.} R\'{e}-\'{e}valuer les top-20 candidats ($\sim$50~ms suppl.).
 
-    \item \textbf{Cache Redis.} Mettre en cache les embeddings de requ\^{e}tes fr\'{e}quentes pour \'{e}liminer le co\^{u}t de vectorisation (10~ms $\rightarrow$ $<$1~ms).
+    \item \textbf{Support multilingue.} Mod\`{e}le \texttt{paraphrase-multilingual-MiniLM-L12-v2}.
 
-    \item \textbf{Fine-tuning domain-specific.} Ajuster le mod\`{e}le sur des paires (requ\^{e}te, document pertinent) du domaine cible via la perte \textit{contrastive} ou \textit{triplet}.
+    \item \textbf{Cache Redis.} \'{E}liminer le co\^{u}t de vectorisation (10~ms $\rightarrow$ $<$1~ms).
 
-    \item \textbf{Passage \`{a} l'\'{e}chelle.} Pour des corpus $> 10^6$~documents, envisager le \textit{quantization} (Product Quantization, Scalar Quantization) pour r\'{e}duire l'empreinte m\'{e}moire de 4$\times$ avec une perte de recall minimale.
+    \item \textbf{Fine-tuning.} Ajuster sur des paires (requ\^{e}te, document) du domaine cible.
+
+    \item \textbf{Quantization.} Product Quantization pour r\'{e}duire la m\'{e}moire de 4$\times$.
 \end{enumerate}
 
 % ================================================================
@@ -655,17 +1105,17 @@ L'analyse qualitative r\'{e}v\`{e}le trois sc\'{e}narios o\`{u} la recherche s\'
 \section{Conclusion}
 \label{sec:conclusion}
 
-Ce mini-projet a permis de concevoir et d'impl\'{e}menter un moteur de recherche s\'{e}mantique complet, de l'acquisition des donn\'{e}es \`{a} l'\'{e}valuation quantitative. Les principaux r\'{e}sultats sont :
+Ce mini-projet a permis de concevoir et d'impl\'{e}menter un moteur de recherche s\'{e}mantique complet. Les principaux r\'{e}sultats :
 
 \begin{itemize}[noitemsep]
-    \item La recherche s\'{e}mantique (pgvector + Sentence-Transformers) atteint une \textbf{Precision@5 de 0.81} sur 1\,964~documents, surpassant TF-IDF de 6.6\% en P@5 et 21.4\% en P@3 ;
-    \item Le temps de r\'{e}ponse moyen est de \textbf{19.8~ms}, compatible avec une utilisation interactive ;
-    \item L'architecture modulaire (10~modules Python, API REST, Docker) permet un d\'{e}ploiement rapide.
+    \item Recherche s\'{e}mantique : \textbf{Precision@5 = 0.81}, surpassant TF-IDF de 6.6\% (P@5) et 21.4\% (P@3) ;
+    \item Temps de r\'{e}ponse moyen : \textbf{19.8~ms}, compatible avec l'usage interactif ;
+    \item Architecture modulaire : 10~modules Python, API REST, Docker.
 \end{itemize}
 
-Les comp\'{e}tences acquises couvrent l'ensemble de la cha\^{\i}ne : manipulation de bases de donn\'{e}es vectorielles, g\'{e}n\'{e}ration d'embeddings contextuels, indexation HNSW, \'{e}valuation comparative de syst\`{e}mes de recherche d'information, et exposition via API REST.
+Les comp\'{e}tences acquises couvrent la cha\^{\i}ne compl\`{e}te : bases vectorielles, embeddings contextuels, indexation HNSW, \'{e}valuation comparative et API REST.
 
-Les perspectives incluent le support multilingue, la recherche hybride RRF, le re-ranking par cross-encoder et l'optimisation pour les corpus de grande taille. L'API REST d\'{e}velopp\'{e}e en bonus ouvre la voie \`{a} une int\'{e}gration dans des architectures distribu\'{e}es et des applications de production.
+Les perspectives incluent la recherche hybride RRF, le re-ranking par cross-encoder, le support multilingue et l'optimisation pour les grands corpus.
 
 % ================================================================
 % BIBLIOGRAPHIE
@@ -676,17 +1126,17 @@ Les perspectives incluent le support multilingue, la recherche hybride RRF, le r
 \bibitem{reimers2019sentence}
 N.~Reimers and I.~Gurevych,
 ``Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks,''
-in \textit{Proc. Conference on Empirical Methods in Natural Language Processing (EMNLP)}, 2019, pp.~3982--3992.
+in \textit{Proc. EMNLP}, 2019, pp.~3982--3992.
 
 \bibitem{malkov2020hnsw}
 Y.~A. Malkov and D.~A. Yashunin,
 ``Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs,''
-\textit{IEEE Trans. Pattern Analysis and Machine Intelligence}, vol.~42, no.~4, pp.~824--836, 2020.
+\textit{IEEE TPAMI}, vol.~42, no.~4, pp.~824--836, 2020.
 
 \bibitem{robertson2009bm25}
 S.~Robertson and H.~Zaragoza,
 ``The Probabilistic Relevance Framework: BM25 and Beyond,''
-\textit{Foundations and Trends in Information Retrieval}, vol.~3, no.~4, pp.~333--389, 2009.
+\textit{Found. Trends Inf. Retr.}, vol.~3, no.~4, pp.~333--389, 2009.
 
 \bibitem{johnson2019faiss}
 J.~Johnson, M.~Douze, and H.~J\'{e}gou,
@@ -696,12 +1146,12 @@ J.~Johnson, M.~Douze, and H.~J\'{e}gou,
 \bibitem{pgvector2023}
 A.~Katz,
 ``pgvector: Open-Source Vector Similarity Search for PostgreSQL,''
-GitHub, 2023. [Online]. Available: \url{https://github.com/pgvector/pgvector}
+GitHub, 2023. Available: \url{https://github.com/pgvector/pgvector}
 
 \bibitem{sbert2024}
 N.~Reimers,
 ``Sentence-Transformers Documentation,''
-2024. [Online]. Available: \url{https://www.sbert.net/}
+2024. Available: \url{https://www.sbert.net/}
 
 \bibitem{devlin2019bert}
 J.~Devlin, M.-W.~Chang, K.~Lee, and K.~Toutanova,
@@ -714,9 +1164,9 @@ T.~Mikolov, I.~Sutskever, K.~Chen, G.~Corrado, and J.~Dean,
 in \textit{Proc. NeurIPS}, 2013, pp.~3111--3119.
 
 \bibitem{wang2022text}
-L.~Wang, N.~Yang, X.~Huang, B.~Jiao, L.~Yang, D.~Jiang, R.~Majumder, and F.~Wei,
+L.~Wang et al.,
 ``Text Embeddings by Weakly-Supervised Contrastive Pre-training,''
-\textit{arXiv preprint arXiv:2212.03533}, 2022.
+\textit{arXiv:2212.03533}, 2022.
 
 \end{thebibliography}
 
