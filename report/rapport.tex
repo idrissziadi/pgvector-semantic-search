@@ -294,7 +294,7 @@ La figure~\ref{fig:cosine} illustre g\'{e}om\'{e}triquement la similarit\'{e} co
     % Vectors
     \draw[->, line width=2.5pt, tikzblue] (0,0) -- (4.2,1.5) node[right, font=\small\bfseries] {$\vec{u}$ (doc)};
     \draw[->, line width=2.5pt, tikzgreen] (0,0) -- (2.5,3.5) node[above, font=\small\bfseries] {$\vec{v}$ (requ\^{e}te)};
-    \draw[->, line width=2.5pt, tikzred] (0,0) -- (4.5,3.2) node[right, font=\small\bfseries] {$\vec{w}$ (non pertinent)};
+    \draw[->, line width=2.5pt, tikzred] (0,0) -- (4.5,3.2) node[above, font=\small\bfseries] {$\vec{w}$ (non pertinent)};
 
     % Angle theta (u,v)
     \draw[tikzblue, thick] (1.2,0.43) arc[start angle=19.7, end angle=54.5, radius=1.27];
@@ -305,8 +305,8 @@ La figure~\ref{fig:cosine} illustre g\'{e}om\'{e}triquement la similarit\'{e} co
     \node[tikzred, font=\small] at (2.2,2.0) {$\theta_2$};
 
     % Formulas
-    \node[draw=tikzblue, fill=tikzlightblue, rounded corners=3pt, font=\footnotesize, align=left] at (5.5,3.5) {$\cos(\theta_1) = 0.89$\\\textbf{Haute similarit\'{e}}};
-    \node[draw=tikzred, fill=tikzlightred, rounded corners=3pt, font=\footnotesize, align=left] at (5.5,1.5) {$\cos(\theta_2) = 0.42$\\Faible similarit\'{e}};
+    \node[draw=tikzblue, fill=tikzlightblue, rounded corners=3pt, font=\footnotesize, align=left, anchor=west] at (6.2,3.5) {$\cos(\theta_1) = 0.89$\\\textbf{Haute similarit\'{e}}};
+    \node[draw=tikzred, fill=tikzlightred, rounded corners=3pt, font=\footnotesize, align=left, anchor=west] at (6.2,1.5) {$\cos(\theta_2) = 0.42$\\Faible similarit\'{e}};
 
 \end{tikzpicture}
 \caption{Interpr\'{e}tation g\'{e}om\'{e}trique de la similarit\'{e} cosinus : un angle faible = haute similarit\'{e}}
