@@ -1,0 +1,152 @@
+% ============================================================
+%  beamerthemeASTRA.sty – Custom Beamer Theme
+%  Adapted for academic presentations
+% ============================================================
+\ProvidesPackage{beamerthemeASTRA}
+
+\mode<presentation>
+
+% ---- Colour palette ----
+\definecolor{ASTRAblue}{HTML}{1A3C7A}
+\definecolor{ASTRAnavy}{HTML}{0D1B3E}
+\definecolor{ASTRAaccent}{HTML}{2563EB}
+\definecolor{ASTRAgold}{HTML}{D4A843}
+\definecolor{ASTRAorange}{HTML}{E67E22}
+\definecolor{ASTRAwhite}{HTML}{FFFFFF}
+\definecolor{ASTRAlightbg}{HTML}{F0F4FA}
+\definecolor{ASTRAgray}{HTML}{6B7280}
+
+% ---- Beamer colour assignments ----
+\setbeamercolor{structure}{fg=ASTRAblue}
+\setbeamercolor{palette primary}{bg=ASTRAblue, fg=ASTRAwhite}
+\setbeamercolor{palette secondary}{bg=ASTRAnavy, fg=ASTRAwhite}
+\setbeamercolor{palette tertiary}{bg=ASTRAaccent, fg=ASTRAwhite}
+\setbeamercolor{palette quaternary}{bg=ASTRAgold, fg=ASTRAnavy}
+
+\setbeamercolor{title}{fg=ASTRAnavy}
+\setbeamercolor{frametitle}{fg=ASTRAwhite, bg=ASTRAblue}
+\setbeamercolor{framesubtitle}{fg=ASTRAgold}
+
+\setbeamercolor{normal text}{fg=ASTRAnavy}
+\setbeamercolor{alerted text}{fg=ASTRAorange}
+\setbeamercolor{example text}{fg=ASTRAaccent}
+
+\setbeamercolor{block title}{fg=ASTRAwhite, bg=ASTRAblue}
+\setbeamercolor{block body}{bg=ASTRAlightbg}
+\setbeamercolor{block title alerted}{fg=ASTRAwhite, bg=ASTRAorange}
+\setbeamercolor{block body alerted}{bg=ASTRAlightbg}
+\setbeamercolor{block title example}{fg=ASTRAwhite, bg=ASTRAaccent}
+\setbeamercolor{block body example}{bg=ASTRAlightbg}
+
+\setbeamercolor{item}{fg=ASTRAaccent}
+\setbeamercolor{subitem}{fg=ASTRAblue}
+\setbeamercolor{itemize item}{fg=ASTRAaccent}
+\setbeamercolor{itemize subitem}{fg=ASTRAblue}
+\setbeamercolor{enumerate item}{fg=ASTRAaccent}
+
+\setbeamercolor{footline}{fg=ASTRAgray, bg=white}
+\setbeamercolor{headline}{bg=ASTRAblue}
+
+\setbeamercolor{bibliography item}{fg=ASTRAblue}
+\setbeamercolor{bibliography entry author}{fg=ASTRAnavy}
+\setbeamercolor{bibliography entry title}{fg=ASTRAblue}
+\setbeamercolor{bibliography entry note}{fg=ASTRAgray}
+
+% ---- Fonts ----
+\setbeamerfont{title}{size=\Large, series=\bfseries}
+\setbeamerfont{frametitle}{size=\large, series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\normalsize}
+\setbeamerfont{block title}{size=\normalsize, series=\bfseries}
+\setbeamerfont{footnote}{size=\tiny}
+
+% ---- Inner theme ----
+\useinnertheme{rounded}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+
+% ---- Outer theme ----
+\setbeamertemplate{navigation symbols}{}
+
+% Frame title
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth, ht=2.5em, dp=0.8em, leftskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+    \ifx\insertframesubtitle\@empty\else
+      \quad{\usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}\insertframesubtitle}
+    \fi
+  \end{beamercolorbox}
+}
+
+% Footline
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=0.33\paperwidth, ht=2.2ex, dp=1ex, leftskip=1em]{footline}
+      \usebeamerfont{footnote}\@astra@paperid
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.34\paperwidth, ht=2.2ex, dp=1ex, center]{footline}
+      \usebeamerfont{footnote}\insertshortdate
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.33\paperwidth, ht=2.2ex, dp=1ex, rightskip=1em, right]{footline}
+      \usebeamerfont{footnote}\insertframenumber\,/\,\inserttotalframenumber
+    \end{beamercolorbox}%
+  }
+}
+
+% ---- Title page ----
+\newcommand{\@astra@affiliations}{}
+\newcommand{\setAffiliations}[1]{\renewcommand{\@astra@affiliations}{#1}}
+
+\newcommand{\@astra@corresponding}{}
+\newcommand{\setCorrespondingAuthor}[1]{\renewcommand{\@astra@corresponding}{#1}}
+
+\newcommand{\@astra@paperid}{}
+\newcommand{\setPaperID}[1]{\renewcommand{\@astra@paperid}{#1}}
+
+\setbeamertemplate{title page}{%
+  \vfill
+  \begin{center}
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}
+    \vskip 0.8em
+    {\small\insertauthor\par}
+    \vskip 0.5em
+    {\scriptsize\textcolor{ASTRAgray}{\@astra@affiliations}\par}
+    \vskip 0.3em
+    {\scriptsize\textcolor{ASTRAgray}{\@astra@corresponding}\par}
+    \vskip 0.6em
+    {\footnotesize\textcolor{ASTRAgold}{\@astra@paperid}\par}
+    \vskip 0.3em
+    {\footnotesize\insertdate\par}
+  \end{center}
+  \vfill
+}
+
+% ---- Thank-you slide ----
+\newcommand{\thankyouslide}[1]{%
+  \begin{frame}[plain]
+    \vfill
+    \begin{center}
+      {\Huge\bfseries\textcolor{ASTRAblue}{Merci !}}\\[1.5em]
+      {\Large\textcolor{ASTRAnavy}{Questions \& Discussion}}\\[1.5em]
+      {\small\textcolor{ASTRAgray}{#1}}
+    \end{center}
+    \vfill
+  \end{frame}
+}
+
+% ---- Methodology columns ----
+\newenvironment{methodcols}{%
+  \begin{columns}[T]
+}{%
+  \end{columns}
+}
+
+\newcommand{\methodcol}[2]{%
+  \begin{column}{0.31\textwidth}
+    \begin{block}{#1}
+      #2
+    \end{block}
+  \end{column}
+}
+
+\mode<all>
